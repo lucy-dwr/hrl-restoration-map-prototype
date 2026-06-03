@@ -20,7 +20,7 @@ export function App() {
   const [layerPanelOpen, setLayerPanelOpen] = useState(true)
 
   useEffect(() => {
-    fetch('/data/projects.geojson')
+    fetch(`${import.meta.env.BASE_URL}data/projects.geojson`)
       .then(r => r.json() as Promise<FeatureCollection>)
       .then(d => setData(d))
       .catch(err => console.error('Failed to load projects.geojson', err))

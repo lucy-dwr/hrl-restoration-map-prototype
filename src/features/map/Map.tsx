@@ -165,7 +165,7 @@ export function Map({
     // Watershed boundary (below projects)
     map.addSource('watershed', {
       type: 'geojson',
-      data: '/data/watershed.geojson',
+      data: `${import.meta.env.BASE_URL}data/watershed.geojson`,
     })
     map.addLayer({
       id: 'watershed-fill',
