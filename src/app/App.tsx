@@ -78,6 +78,7 @@ export function App() {
 
   return (
     <div className={styles.shell}>
+      <TopBar />
       <div
         className={styles.mapWrapper}
         style={{ right: panelOpen ? 'var(--detail-panel-width)' : '0px' }}
@@ -103,7 +104,6 @@ export function App() {
           onToggleOpen={() => setLayerPanelOpen(o => !o)}
         />
       </div>
-      <TopBar />
       {panelOpen && selectedProject && (
         <DetailPanel project={selectedProject} onClose={handleProjectDeselect} />
       )}
