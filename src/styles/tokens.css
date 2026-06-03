@@ -1,0 +1,49 @@
+:root {
+  /* Layout */
+  --top-bar-height: 48px;
+  --detail-panel-width: 400px;
+
+  /* Type scale */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+
+  /* Weight */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Surfaces */
+  --surface-0: #ffffff;
+  --surface-1: #f7f7f6;
+  --surface-2: #eeeeed;
+
+  /* Text */
+  --text-primary: #111111;
+  --text-secondary: #4a4a48;
+  --text-tertiary: #888884;
+
+  /* Borders */
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-default: rgba(0, 0, 0, 0.12);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  /* Brand / accent */
+  --accent: #1b7eb8;
+  --accent-hover: #1567a0;
+  --accent-light: rgba(27, 126, 184, 0.10);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}

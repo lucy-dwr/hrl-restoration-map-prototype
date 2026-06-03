@@ -1,3 +1,5 @@
+@import './tokens.css';
+
 *,
 *::before,
 *::after {
@@ -15,7 +17,8 @@ body,
 }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 14px;
-  color: #1a1a1a;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
 }
