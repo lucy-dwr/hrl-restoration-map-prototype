@@ -1,7 +1,7 @@
 # HRL Dashboard — Specification
 
-**Status:** v0.1 draft
-**Working repo name:** `hrl-restoration-map-prototype`
+**Status:** v0.1 draft  
+**Working repo name:** `hrl-restoration-map-prototype`  
 **Related repos:**
 
 - `hrl-data-infrastructure` — pipelines, storage, and publication architecture at `lucy-dwr.github.io/hrl-data-infrastructure`
@@ -394,13 +394,13 @@ This spec records the decisions those conventions must support; `AGENTS.md` expl
 
 Annotated list. Use these as design and behavior references during implementation.
 
-- **Cal-Adapt climate metrics map** — parameter-picker onboarding pattern; restrained palette; clear methodology link.
-- **Global Forest Watch map** — gold standard for the GFW-style full-bleed map with floating panels, layer rail, and country-level dashboards. Built by Vizzuality on Mapbox GL + React. Note the URL-state-as-base64 pattern, which we will partially borrow.
-- **Mongabay maps** — clean topical mapping; useful for "topic dashboard" composition.
-- **Half-Earth Project (data globe)** — chapter-based storytelling integrated with a map. Reference for the near-future storytelling work.
-- **Resource Watch (explore)** — Vizzuality / WRI again. Reference for multi-topic dashboard organization.
-- **Kepler.gl demos (MVT population, earthquakes)** — reference for time-playback, brushing, and layer-config UI. Prototyping tool only, not runtime.
-- **NYT 2020 election map (Upshot)** — reference for hover-cheap, click-rich interaction and coordinated map + chart views.
+- **[Cal-Adapt climate metrics map](https://cal-adapt.org/dashboard/climate-metrics-map?metric=extreme-precipitation)** — parameter-picker onboarding pattern; restrained palette; clear methodology link.
+- **[Global Forest Watch map](https://www.globalforestwatch.org/map/)** — gold standard for the GFW-style full-bleed map with floating panels, layer rail, and country-level dashboards. Built by Vizzuality on Mapbox GL + React. Note the URL-state-as-base64 pattern, which we will partially borrow.
+- **[Mongabay maps](https://maps.mongabay.com/)** — clean topical mapping; useful for "topic dashboard" composition.
+- **[Half-Earth Project (data globe)](https://map.half-earthproject.org/dataGlobe)** — chapter-based storytelling integrated with a map. Reference for the near-future storytelling work.
+- **[Resource Watch (explore)](https://resourcewatch.org/data/explore)** — Vizzuality / WRI again. Reference for multi-topic dashboard organization.
+- **Kepler.gl demos ([MVT population](https://kepler.gl/demo/mvt_population), [earthquakes](https://kepler.gl/demo/earthquakes))** — reference for time-playback, brushing, and layer-config UI. Prototyping tool only, not runtime.
+- **[NYT 2020 election map (Upshot)](https://www.nytimes.com/interactive/2021/upshot/2020-election-map.html)** — reference for hover-cheap, click-rich interaction and coordinated map + chart views.
 
 ---
 
