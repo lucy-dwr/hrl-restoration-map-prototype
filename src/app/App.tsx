@@ -30,7 +30,8 @@ export function App() {
   const [basemap, setBasemap] = useState<BasemapMode>(initial.basemap)
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(initial.hiddenTypes)
   const [sacramentoWatershedVisible, setSacramentoWatershedVisible] = useState(initial.sacramentoWatershedVisible)
-  const [sanJoaquinWatershedVisible, setSanJoaquinWatershedVisible] = useState(initial.sanJoaquinWatershedVisible)
+  const [mokelumneWatershedVisible, setMokelumneWatershedVisible] = useState(initial.mokelumneWatershedVisible)
+  const [tuolumneWatershedVisible, setTuolumneWatershedVisible] = useState(initial.tuolumneWatershedVisible)
   const [deltaBoundaryVisible, setDeltaBoundaryVisible] = useState(initial.deltaBoundaryVisible)
   const [yoloBypassVisible, setYoloBypassVisible] = useState(initial.yoloBypassVisible)
   const [sutterBypassVisible, setSutterBypassVisible] = useState(initial.sutterBypassVisible)
@@ -41,6 +42,7 @@ export function App() {
   const [projectFocusRequest, setProjectFocusRequest] = useState<{ displayId: string; seq: number } | null>(null)
   const [fitVisibleRequest, setFitVisibleRequest] = useState(0)
   const [layerPanelOpen, setLayerPanelOpen] = useState(true)
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/projects.geojson`)
@@ -107,10 +109,18 @@ export function App() {
     })
   }, [])
 
-  const handleToggleSanJoaquinWatershed = useCallback(() => {
-    setSanJoaquinWatershedVisible(prev => {
+  const handleToggleMokelumneWatershed = useCallback(() => {
+    setMokelumneWatershedVisible(prev => {
       const next = !prev
-      writeUrlState({ sanJoaquinWatershedVisible: next })
+      writeUrlState({ mokelumneWatershedVisible: next })
+      return next
+    })
+  }, [])
+
+  const handleToggleTuolumneWatershed = useCallback(() => {
+    setTuolumneWatershedVisible(prev => {
+      const next = !prev
+      writeUrlState({ tuolumneWatershedVisible: next })
       return next
     })
   }, [])
@@ -200,11 +210,22 @@ export function App() {
     setProjectFocusRequest({ displayId: selectedDisplayId, seq: Date.now() })
   }, [selectedDisplayId])
 
+  useEffect(() => {
+    if (!aboutOpen) return
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setAboutOpen(false)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [aboutOpen])
+
   const panelOpen = selectedProject !== null
 
   return (
     <div className={styles.shell}>
-      <TopBar />
+      <TopBar onAboutOpen={() => setAboutOpen(true)} />
       <div
         className={styles.mapWrapper}
         style={{ right: panelOpen ? 'var(--detail-panel-width)' : '0px' }}
@@ -217,7 +238,8 @@ export function App() {
           fitVisibleRequest={fitVisibleRequest}
           selectedDisplayId={selectedDisplayId}
           sacramentoWatershedVisible={sacramentoWatershedVisible}
-          sanJoaquinWatershedVisible={sanJoaquinWatershedVisible}
+          mokelumneWatershedVisible={mokelumneWatershedVisible}
+          tuolumneWatershedVisible={tuolumneWatershedVisible}
           deltaBoundaryVisible={deltaBoundaryVisible}
           yoloBypassVisible={yoloBypassVisible}
           sutterBypassVisible={sutterBypassVisible}
@@ -249,8 +271,10 @@ export function App() {
           onToggleType={handleToggleType}
           sacramentoWatershedVisible={sacramentoWatershedVisible}
           onToggleSacramentoWatershed={handleToggleSacramentoWatershed}
-          sanJoaquinWatershedVisible={sanJoaquinWatershedVisible}
-          onToggleSanJoaquinWatershed={handleToggleSanJoaquinWatershed}
+          mokelumneWatershedVisible={mokelumneWatershedVisible}
+          onToggleMokelumneWatershed={handleToggleMokelumneWatershed}
+          tuolumneWatershedVisible={tuolumneWatershedVisible}
+          onToggleTuolumneWatershed={handleToggleTuolumneWatershed}
           deltaBoundaryVisible={deltaBoundaryVisible}
           onToggleDeltaBoundary={handleToggleDeltaBoundary}
           yoloBypassVisible={yoloBypassVisible}
@@ -269,6 +293,56 @@ export function App() {
           onClose={handleProjectDeselect}
           onZoomToProject={handleZoomToSelectedProject}
         />
+      )}
+      {aboutOpen && (
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onMouseDown={() => setAboutOpen(false)}
+        >
+          <section
+            className={styles.aboutDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="about-title"
+            onMouseDown={event => event.stopPropagation()}
+          >
+            <header className={styles.aboutHeader}>
+              <h2 id="about-title" className={styles.aboutTitle}>About This Dashboard</h2>
+              <button
+                type="button"
+                className={styles.aboutClose}
+                aria-label="Close About dialog"
+                onClick={() => setAboutOpen(false)}
+              >
+                ×
+              </button>
+            </header>
+            <div className={styles.aboutBody}>
+              <p>
+                This map shows habitat restoration projects in the Healthy Rivers
+                and Landscapes Program.
+              </p>
+              <p>
+                Healthy Rivers and Landscapes is a watershed-wide approach to improve
+                river flows, expand habitat, and support native fish and wildlife in
+                the Sacramento and San Joaquin Rivers and the Bay-Delta.
+              </p>
+              <p>
+                This map is currently a prototype and all content is draft.
+              </p>
+              <div className={styles.aboutLinks}>
+                <a
+                  href="https://resources.ca.gov/Initiatives/Voluntary-Agreements-Page"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  CNRA program page
+                </a>
+              </div>
+            </div>
+          </section>
+        </div>
       )}
     </div>
   )
