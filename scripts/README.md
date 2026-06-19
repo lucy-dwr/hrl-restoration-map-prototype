@@ -31,6 +31,17 @@ Fetches the Sacramento-San Joaquin Delta legal boundary from the California
 Department of Water Resources `i03_LegalDeltaBoundary` ArcGIS service,
 simplifies it, and writes `public/data/delta-boundary.geojson`.
 
+## `fetch-bypass-boundaries.py`
+
+Fetches representational Yolo Bypass and Sutter Bypass boundary polygons from
+the California Department of Water Resources `i12_Flood_Bypasses_2014` ArcGIS
+service, simplifies them, and writes
+`public/data/yolo-bypass-boundary.geojson` and
+`public/data/sutter-bypass-boundary.geojson`. These polygons are flood-bypass
+context layers and do not constitute legal boundaries. The Sutter source
+features are dissolved before writing so the map renders only the outer bypass
+outline, without internal source-feature boundaries.
+
 ## `fetch-streams.py`
 
 Builds the stream-network base layer from **NHDPlus V2** (California, Vector

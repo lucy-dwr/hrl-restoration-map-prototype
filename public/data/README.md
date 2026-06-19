@@ -6,7 +6,8 @@ Start with `projects.geojson` generated from the GeoPackage in `data/source/` an
 
 Context layers are generated separately: `sacramento-watershed.geojson` and
 `san-joaquin-watershed.geojson` from the USGS WBD service,
-`delta-boundary.geojson` from the DWR legal Delta boundary service, and
-`streams.pmtiles` from NHDPlus V2 source data.
+`delta-boundary.geojson` from the DWR legal Delta boundary service,
+`yolo-bypass-boundary.geojson` and `sutter-bypass-boundary.geojson` from the
+DWR flood bypasses service, and `streams.pmtiles` from NHDPlus V2 source data.
 
 Files here should be reproducible from source data and conversion scripts.

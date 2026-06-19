@@ -17,8 +17,9 @@ applicable.
   standards, and pull request guidance.
 - Added `CODE_OF_CONDUCT.md`, adapted from Contributor Covenant 3.0.
 - Added Sacramento and San Joaquin watershed context layers, the
-  Sacramento-San Joaquin Delta legal boundary, and NHDPlus V2 stream-network
-  PMTiles with dynamic labels for named mainstems and major tributaries.
+  Sacramento-San Joaquin Delta legal boundary, Yolo and Sutter bypass boundary
+  context layers, and NHDPlus V2 stream-network PMTiles with dynamic labels for
+  named mainstems and major tributaries.
 - Added a quiet light basemap with DEM hillshade terrain context and an optional
   Esri World Imagery basemap mode.
 - Added a Projects tab with search, system and early-implementation filters,
@@ -30,7 +31,7 @@ applicable.
 
 - Expanded URL state to include basemap mode and context-layer visibility.
 - Updated layer controls to include basemap, watershed, Delta boundary, and
-  hydrography controls.
+  bypass boundary, and hydrography controls.
 
 ## [0.1.0] - 2026-06-03
 

@@ -29,10 +29,12 @@ The prototype includes:
   and fit-to-visible-projects actions
 - Filter-aware headline metric tiles
 - Layer controls for project types, watershed boundaries, the Delta legal
-  boundary, the stream network, and the basemap
+  boundary, Yolo and Sutter bypass boundaries, the stream network, and the
+  basemap
 - Sacramento and San Joaquin watershed boundaries from USGS WBD HUC4 1802 and
   1804
 - Sacramento-San Joaquin Delta legal boundary from DWR
+- Yolo and Sutter bypass boundary context layers from DWR flood-bypass data
 - California stream-network PMTiles from NHDPlus V2, including dynamic river
   labels for named mainstems and major tributaries
 - Quiet light basemap with DEM hillshade terrain context plus optional Esri
@@ -75,9 +77,12 @@ repeatable prototype workflow:
    `public/data/san-joaquin-watershed.geojson`.
 5. Run `python scripts/fetch-delta-boundary.py` to generate
    `public/data/delta-boundary.geojson`.
-6. Run `python scripts/fetch-streams.py` to generate
+6. Run `python scripts/fetch-bypass-boundaries.py` to generate
+   `public/data/yolo-bypass-boundary.geojson` and
+   `public/data/sutter-bypass-boundary.geojson`.
+7. Run `python scripts/fetch-streams.py` to generate
    `public/data/streams.pmtiles`.
-7. Run the app locally with Vite.
+8. Run the app locally with Vite.
 
 Generated files in `public/data/` should be replaceable by re-running the
 scripts.

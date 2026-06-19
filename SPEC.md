@@ -66,7 +66,7 @@ Design implication: the dashboard must be visually polished enough for the publi
 | Top bar | ✅ |
 | Headline progress tiles | ✅ |
 | Click-to-inspect detail panel | ✅ |
-| Layer toggle panel with project types, watershed boundaries, Delta boundary, and stream network | ✅ |
+| Layer toggle panel with project types, watershed boundaries, Delta/bypass boundaries, and stream network | ✅ |
 | Map / imagery basemap toggle | ✅ |
 | Searchable/filterable project list and non-map browsing equivalent | ✅ prototype |
 | Fit-to-visible-projects and zoom-to-project map actions | ✅ |
@@ -201,7 +201,7 @@ The map, the tile strip, and any chart panels are views over a single shared app
 ### 7.4 Layer logic
 
 - Layers are independently toggleable.
-- Project-type layers default ON. Sacramento and San Joaquin HUC4 watershed outlines default ON as regional context; the Delta legal boundary defaults OFF because it is reference context. The stream network defaults ON.
+- Project-type layers default ON. Sacramento and San Joaquin HUC4 watershed outlines default ON as regional context. The Delta legal boundary and Yolo/Sutter bypass boundaries default OFF because they are reference context. The stream network defaults ON.
 - Layer order is fixed and not user-configurable in v1 (defer drag-to-reorder).
 
 ### 7.5 Project browsing and filtering
@@ -235,6 +235,8 @@ What gets encoded:
 &sacramento=0                           # Sacramento watershed hidden (absent = visible)
 &sanjoaquin=0                           # San Joaquin watershed hidden (absent = visible)
 &delta=1                                # Delta legal boundary visible (absent = hidden)
+&yolobypass=1                           # Yolo Bypass boundary visible (absent = hidden)
+&sutterbypass=1                         # Sutter Bypass boundary visible (absent = hidden)
 &streams=0                              # stream-network layer hidden (absent = visible)
 &basemap=imagery                        # imagery basemap selected (absent = map)
 ```
@@ -329,6 +331,7 @@ To be elaborated in a `layer-catalog.md` sub-spec. Minimum set:
 - Project locations (one logical layer, styled by project type)
 - Watershed boundaries — prototype uses Sacramento HUC4 1802 and San Joaquin HUC4 1804 outlines from USGS WBD (Decision 24)
 - Sacramento-San Joaquin Delta legal boundary — prototype uses the DWR `i03_LegalDeltaBoundary` ArcGIS service, default hidden (Decision 25)
+- Yolo and Sutter bypass boundaries — prototype uses the DWR `i12_Flood_Bypasses_2014` ArcGIS service for representational flood-bypass extents, default hidden (Decision 31)
 - Stream network — prototype uses NHDPlus V2 VPU 18 flowlines and water polygons tiled to PMTiles, default visible, with line-following labels for named mainstems and major tributaries (Decision 26)
 - Basemap (hydrography, terrain, administrative reference, optional imagery)
 
@@ -517,3 +520,4 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 28 | 2026-06-19 | Sacramento watershed data and code identifiers use explicit Sacramento naming: `public/data/sacramento-watershed.geojson`, `sacramento-watershed` map source/layers, and `sacramento=0` URL state. | Adding the San Joaquin watershed made the previous generic `watershed` names ambiguous; parallel naming keeps the two HUC4 context layers clear. |
 | 29 | 2026-06-19 | Prototype light basemap includes MapLibre-rendered DEM hillshade terrain context. | Terrain makes watershed structure legible without switching to a noisy topographic basemap; rendering from DEM tiles avoids the fuzzy appearance of low-resolution relief imagery. |
 | 30 | 2026-06-19 | Prototype left rail includes a Projects tab with search, system and early-implementation filters, list-driven selection, zoom-to-project, and fit-to-visible-projects. | The dashboard needs a non-map browsing path before the project dataset grows; coordinating list, map, and headline tiles over one filtered project set keeps the experience coherent. |
+| 31 | 2026-06-19 | Prototype includes optional Yolo and Sutter bypass boundary context layers from the DWR `i12_Flood_Bypasses_2014` service, written to `public/data/yolo-bypass-boundary.geojson` and `public/data/sutter-bypass-boundary.geojson`. | These flood bypasses are highly relevant HRL floodplain context. The DWR layer is purpose-built for flood-bypass map display, but is representational rather than legal, so the layers default hidden and are labeled as context boundaries. |
