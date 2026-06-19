@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import type { ProjectProperties } from '../../data/types'
 import { PROJECT_TYPE_COLORS, FALLBACK_COLOR } from '../../features/map/project-colors'
 import type { BasemapMode } from '../../lib/url-state'
@@ -16,8 +17,51 @@ const ALL_TYPES = [
   'other',
 ]
 
+type LayerSectionId = 'basemap' | 'projectTypes' | 'boundaries' | 'hydrography'
+
 function capitalize(s: string): string {
   return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1)
+}
+
+interface CollapsibleSectionProps {
+  id: LayerSectionId
+  label: string
+  expanded: boolean
+  onToggle: (id: LayerSectionId) => void
+  children: ReactNode
+}
+
+function CollapsibleSection({
+  id,
+  label,
+  expanded,
+  onToggle,
+  children,
+}: CollapsibleSectionProps) {
+  const panelId = `${id}-section`
+
+  return (
+    <div className={styles.section}>
+      <button
+        type="button"
+        className={styles.sectionHeader}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        onClick={() => onToggle(id)}
+      >
+        <span className={styles.sectionLabel}>{label}</span>
+        <span
+          className={expanded ? styles.disclosureOpen : styles.disclosure}
+          aria-hidden="true"
+        />
+      </button>
+      {expanded && (
+        <div id={panelId} className={styles.sectionContent}>
+          {children}
+        </div>
+      )}
+    </div>
+  )
 }
 
 interface Props {
@@ -44,6 +88,10 @@ interface Props {
   onToggleSanJoaquinWatershed: () => void
   deltaBoundaryVisible: boolean
   onToggleDeltaBoundary: () => void
+  yoloBypassVisible: boolean
+  onToggleYoloBypass: () => void
+  sutterBypassVisible: boolean
+  onToggleSutterBypass: () => void
   streamsVisible: boolean
   onToggleStreams: () => void
   open: boolean
@@ -74,12 +122,30 @@ export function LayerPanel({
   onToggleSanJoaquinWatershed,
   deltaBoundaryVisible,
   onToggleDeltaBoundary,
+  yoloBypassVisible,
+  onToggleYoloBypass,
+  sutterBypassVisible,
+  onToggleSutterBypass,
   streamsVisible,
   onToggleStreams,
   open,
   onToggleOpen,
 }: Props) {
   const [activeTab, setActiveTab] = useState<'layers' | 'projects'>('layers')
+  const [collapsedSections, setCollapsedSections] = useState<Set<LayerSectionId>>(() => new Set())
+
+  function toggleLayerSection(section: LayerSectionId) {
+    setCollapsedSections(prev => {
+      const next = new Set(prev)
+      if (next.has(section)) next.delete(section)
+      else next.add(section)
+      return next
+    })
+  }
+
+  function isLayerSectionExpanded(section: LayerSectionId): boolean {
+    return !collapsedSections.has(section)
+  }
 
   return (
     <div className={styles.root}>
@@ -119,8 +185,12 @@ export function LayerPanel({
 
           {activeTab === 'layers' ? (
             <div className={styles.scrollBody}>
-              <div className={styles.section}>
-                <h3 className={styles.sectionLabel}>Basemap</h3>
+              <CollapsibleSection
+                id="basemap"
+                label="Basemap"
+                expanded={isLayerSectionExpanded('basemap')}
+                onToggle={toggleLayerSection}
+              >
                 <label className={styles.row}>
                   <input
                     type="radio"
@@ -141,106 +211,148 @@ export function LayerPanel({
                   />
                   <span className={styles.typeLabel}>Imagery</span>
                 </label>
-              </div>
+              </CollapsibleSection>
 
               <div className={styles.divider} />
 
-              <div className={styles.section}>
-            <h3 className={styles.sectionLabel}>Project types</h3>
-            {ALL_TYPES.map(type => {
-              const visible = !hiddenTypes.has(type)
-              const color = PROJECT_TYPE_COLORS[type] ?? FALLBACK_COLOR
-              return (
-                <label key={type} className={styles.row}>
+              <CollapsibleSection
+                id="projectTypes"
+                label="Project types"
+                expanded={isLayerSectionExpanded('projectTypes')}
+                onToggle={toggleLayerSection}
+              >
+                {ALL_TYPES.map(type => {
+                  const visible = !hiddenTypes.has(type)
+                  const color = PROJECT_TYPE_COLORS[type] ?? FALLBACK_COLOR
+                  return (
+                    <label key={type} className={styles.row}>
+                      <input
+                        type="checkbox"
+                        className={styles.checkbox}
+                        checked={visible}
+                        onChange={() => onToggleType(type)}
+                      />
+                      <span
+                        className={styles.dot}
+                        style={{ background: visible ? color : '#cccccc' }}
+                      />
+                      <span className={styles.typeLabel} style={{ color: visible ? undefined : 'var(--text-tertiary)' }}>
+                        {capitalize(type)}
+                      </span>
+                    </label>
+                  )
+                })}
+              </CollapsibleSection>
+
+              <div className={styles.divider} />
+
+              <CollapsibleSection
+                id="boundaries"
+                label="Boundaries"
+                expanded={isLayerSectionExpanded('boundaries')}
+                onToggle={toggleLayerSection}
+              >
+                <label className={styles.row}>
                   <input
                     type="checkbox"
                     className={styles.checkbox}
-                    checked={visible}
-                    onChange={() => onToggleType(type)}
+                    checked={sacramentoWatershedVisible}
+                    onChange={onToggleSacramentoWatershed}
                   />
                   <span
                     className={styles.dot}
-                    style={{ background: visible ? color : '#cccccc' }}
+                    style={{ background: sacramentoWatershedVisible ? '#3f7f9f' : '#cccccc', borderRadius: 2 }}
                   />
-                  <span className={styles.typeLabel} style={{ color: visible ? undefined : 'var(--text-tertiary)' }}>
-                    {capitalize(type)}
+                  <span className={styles.typeLabel} style={{ color: sacramentoWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
+                    Sacramento watershed
                   </span>
                 </label>
-              )
-            })}
-              </div>
+                <label className={styles.row}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={sanJoaquinWatershedVisible}
+                    onChange={onToggleSanJoaquinWatershed}
+                  />
+                  <span
+                    className={styles.dot}
+                    style={{ background: sanJoaquinWatershedVisible ? '#5f8e57' : '#cccccc', borderRadius: 2 }}
+                  />
+                  <span className={styles.typeLabel} style={{ color: sanJoaquinWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
+                    San Joaquin watershed
+                  </span>
+                </label>
+                <label className={styles.row}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={deltaBoundaryVisible}
+                    onChange={onToggleDeltaBoundary}
+                  />
+                  <span
+                    className={styles.dot}
+                    style={{ background: deltaBoundaryVisible ? '#72528f' : '#cccccc', borderRadius: 2 }}
+                  />
+                  <span className={styles.typeLabel} style={{ color: deltaBoundaryVisible ? undefined : 'var(--text-tertiary)' }}>
+                    Legal Delta boundary
+                  </span>
+                </label>
+                <label className={styles.row}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={yoloBypassVisible}
+                    onChange={onToggleYoloBypass}
+                  />
+                  <span
+                    className={styles.dot}
+                    style={{ background: yoloBypassVisible ? '#a45d2b' : '#cccccc', borderRadius: 2 }}
+                  />
+                  <span className={styles.typeLabel} style={{ color: yoloBypassVisible ? undefined : 'var(--text-tertiary)' }}>
+                    Yolo Bypass boundary
+                  </span>
+                </label>
+                <label className={styles.row}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={sutterBypassVisible}
+                    onChange={onToggleSutterBypass}
+                  />
+                  <span
+                    className={styles.dot}
+                    style={{ background: sutterBypassVisible ? '#9b7a23' : '#cccccc', borderRadius: 2 }}
+                  />
+                  <span className={styles.typeLabel} style={{ color: sutterBypassVisible ? undefined : 'var(--text-tertiary)' }}>
+                    Sutter Bypass boundary
+                  </span>
+                </label>
+              </CollapsibleSection>
 
               <div className={styles.divider} />
 
-              <div className={styles.section}>
-            <h3 className={styles.sectionLabel}>Boundaries</h3>
-            <label className={styles.row}>
-              <input
-                type="checkbox"
-                className={styles.checkbox}
-                checked={sacramentoWatershedVisible}
-                onChange={onToggleSacramentoWatershed}
-              />
-              <span
-                className={styles.dot}
-                style={{ background: sacramentoWatershedVisible ? '#3f7f9f' : '#cccccc', borderRadius: 2 }}
-              />
-              <span className={styles.typeLabel} style={{ color: sacramentoWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
-                Sacramento watershed
-              </span>
-            </label>
-            <label className={styles.row}>
-              <input
-                type="checkbox"
-                className={styles.checkbox}
-                checked={sanJoaquinWatershedVisible}
-                onChange={onToggleSanJoaquinWatershed}
-              />
-              <span
-                className={styles.dot}
-                style={{ background: sanJoaquinWatershedVisible ? '#5f8e57' : '#cccccc', borderRadius: 2 }}
-              />
-              <span className={styles.typeLabel} style={{ color: sanJoaquinWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
-                San Joaquin watershed
-              </span>
-            </label>
-            <label className={styles.row}>
-              <input
-                type="checkbox"
-                className={styles.checkbox}
-                checked={deltaBoundaryVisible}
-                onChange={onToggleDeltaBoundary}
-              />
-              <span
-                className={styles.dot}
-                style={{ background: deltaBoundaryVisible ? '#72528f' : '#cccccc', borderRadius: 2 }}
-              />
-              <span className={styles.typeLabel} style={{ color: deltaBoundaryVisible ? undefined : 'var(--text-tertiary)' }}>
-                Legal Delta boundary
-              </span>
-            </label>
-              </div>
-
-              <div className={styles.divider} />
-
-              <div className={styles.section}>
-            <h3 className={styles.sectionLabel}>Hydrography</h3>
-            <label className={styles.row}>
-              <input
-                type="checkbox"
-                className={styles.checkbox}
-                checked={streamsVisible}
-                onChange={onToggleStreams}
-              />
-              <span
-                className={styles.dot}
-                style={{ background: streamsVisible ? '#4f9ac1' : '#cccccc', borderRadius: 2 }}
-              />
-              <span className={styles.typeLabel} style={{ color: streamsVisible ? undefined : 'var(--text-tertiary)' }}>
-                Stream network
-              </span>
-            </label>
-              </div>
+              <CollapsibleSection
+                id="hydrography"
+                label="Hydrography"
+                expanded={isLayerSectionExpanded('hydrography')}
+                onToggle={toggleLayerSection}
+              >
+                <label className={styles.row}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={streamsVisible}
+                    onChange={onToggleStreams}
+                  />
+                  <span
+                    className={styles.dot}
+                    style={{ background: streamsVisible ? '#4f9ac1' : '#cccccc', borderRadius: 2 }}
+                  />
+                  <span className={styles.typeLabel} style={{ color: streamsVisible ? undefined : 'var(--text-tertiary)' }}>
+                    Stream network
+                  </span>
+                </label>
+              </CollapsibleSection>
             </div>
           ) : (
             <div className={styles.scrollBody}>

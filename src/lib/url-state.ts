@@ -8,6 +8,8 @@
 //   &sacramento=0                            (absent = visible; "0" = hidden)
 //   &sanjoaquin=0                            (absent = visible; "0" = hidden)
 //   &delta=1                                 (absent = hidden; "1" = visible)
+//   &yolobypass=1                            (absent = hidden; "1" = visible)
+//   &sutterbypass=1                          (absent = hidden; "1" = visible)
 //   &streams=0                               (absent = visible; "0" = hidden)
 
 export type BasemapMode = 'map' | 'imagery'
@@ -22,6 +24,8 @@ export interface UrlState {
   sacramentoWatershedVisible: boolean
   sanJoaquinWatershedVisible: boolean
   deltaBoundaryVisible: boolean
+  yoloBypassVisible: boolean
+  sutterBypassVisible: boolean
   streamsVisible: boolean
 }
 
@@ -35,6 +39,8 @@ const DEFAULTS: UrlState = {
   sacramentoWatershedVisible: true,
   sanJoaquinWatershedVisible: true,
   deltaBoundaryVisible: false,
+  yoloBypassVisible: false,
+  sutterBypassVisible: false,
   streamsVisible: true,
 }
 
@@ -56,6 +62,8 @@ export function readUrlState(): UrlState {
     sacramentoWatershedVisible: p.get('sacramento') !== '0',
     sanJoaquinWatershedVisible: p.get('sanjoaquin') !== '0',
     deltaBoundaryVisible: p.get('delta') === '1',
+    yoloBypassVisible: p.get('yolobypass') === '1',
+    sutterBypassVisible: p.get('sutterbypass') === '1',
     streamsVisible: p.get('streams') !== '0',
   }
 }
@@ -98,6 +106,16 @@ export function writeUrlState(state: Partial<UrlState>): void {
   if (state.deltaBoundaryVisible !== undefined) {
     if (state.deltaBoundaryVisible) p.set('delta', '1')
     else p.delete('delta')
+  }
+
+  if (state.yoloBypassVisible !== undefined) {
+    if (state.yoloBypassVisible) p.set('yolobypass', '1')
+    else p.delete('yolobypass')
+  }
+
+  if (state.sutterBypassVisible !== undefined) {
+    if (state.sutterBypassVisible) p.set('sutterbypass', '1')
+    else p.delete('sutterbypass')
   }
 
   if (state.streamsVisible !== undefined) {

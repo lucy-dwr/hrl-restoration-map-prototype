@@ -282,6 +282,8 @@ interface MapProps {
   sacramentoWatershedVisible: boolean
   sanJoaquinWatershedVisible: boolean
   deltaBoundaryVisible: boolean
+  yoloBypassVisible: boolean
+  sutterBypassVisible: boolean
   streamsVisible: boolean
   initialCenter: [number, number]
   initialZoom: number
@@ -300,6 +302,8 @@ export function Map({
   sacramentoWatershedVisible,
   sanJoaquinWatershedVisible,
   deltaBoundaryVisible,
+  yoloBypassVisible,
+  sutterBypassVisible,
   streamsVisible,
   initialCenter,
   initialZoom,
@@ -476,6 +480,60 @@ export function Map({
         ],
         'line-opacity': 0.9,
         'line-dasharray': [2, 1.2],
+      },
+    })
+
+    // Flood bypass boundaries (DWR i12_Flood_Bypasses_2014).
+    // These are representational context layers, not legal boundaries.
+    map.addSource('yolo-bypass-boundary', {
+      type: 'geojson',
+      data: `${import.meta.env.BASE_URL}data/yolo-bypass-boundary.geojson`,
+    })
+    map.addLayer({
+      id: 'yolo-bypass-boundary-fill',
+      type: 'fill',
+      source: 'yolo-bypass-boundary',
+      paint: { 'fill-color': '#b86b31', 'fill-opacity': 0.045 },
+    })
+    map.addLayer({
+      id: 'yolo-bypass-boundary-outline',
+      type: 'line',
+      source: 'yolo-bypass-boundary',
+      paint: {
+        'line-color': '#a45d2b',
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          6, 1.5,
+          11, 2.5,
+        ],
+        'line-opacity': 0.88,
+        'line-dasharray': [2.4, 1.2],
+      },
+    })
+
+    map.addSource('sutter-bypass-boundary', {
+      type: 'geojson',
+      data: `${import.meta.env.BASE_URL}data/sutter-bypass-boundary.geojson`,
+    })
+    map.addLayer({
+      id: 'sutter-bypass-boundary-fill',
+      type: 'fill',
+      source: 'sutter-bypass-boundary',
+      paint: { 'fill-color': '#b8942b', 'fill-opacity': 0.045 },
+    })
+    map.addLayer({
+      id: 'sutter-bypass-boundary-outline',
+      type: 'line',
+      source: 'sutter-bypass-boundary',
+      paint: {
+        'line-color': '#9b7a23',
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          6, 1.5,
+          11, 2.5,
+        ],
+        'line-opacity': 0.88,
+        'line-dasharray': [1.2, 1.1],
       },
     })
 
@@ -707,7 +765,7 @@ export function Map({
     const vis = sacramentoWatershedVisible ? 'visible' : 'none'
     map.setLayoutProperty('sacramento-watershed-fill', 'visibility', vis)
     map.setLayoutProperty('sacramento-watershed-outline', 'visibility', vis)
-  }, [sacramentoWatershedVisible, mapLoaded])
+  }, [data, sacramentoWatershedVisible, mapLoaded])
 
   // Sync San Joaquin watershed visibility
   useEffect(() => {
@@ -717,7 +775,7 @@ export function Map({
     const vis = sanJoaquinWatershedVisible ? 'visible' : 'none'
     map.setLayoutProperty('san-joaquin-watershed-fill', 'visibility', vis)
     map.setLayoutProperty('san-joaquin-watershed-outline', 'visibility', vis)
-  }, [sanJoaquinWatershedVisible, mapLoaded])
+  }, [data, sanJoaquinWatershedVisible, mapLoaded])
 
   // Sync Delta legal boundary visibility
   useEffect(() => {
@@ -727,7 +785,27 @@ export function Map({
     const vis = deltaBoundaryVisible ? 'visible' : 'none'
     map.setLayoutProperty('delta-boundary-fill', 'visibility', vis)
     map.setLayoutProperty('delta-boundary-outline', 'visibility', vis)
-  }, [deltaBoundaryVisible, mapLoaded])
+  }, [data, deltaBoundaryVisible, mapLoaded])
+
+  // Sync Yolo Bypass boundary visibility
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return
+    const map = mapRef.current
+    if (!map.getLayer('yolo-bypass-boundary-fill')) return
+    const vis = yoloBypassVisible ? 'visible' : 'none'
+    map.setLayoutProperty('yolo-bypass-boundary-fill', 'visibility', vis)
+    map.setLayoutProperty('yolo-bypass-boundary-outline', 'visibility', vis)
+  }, [data, yoloBypassVisible, mapLoaded])
+
+  // Sync Sutter Bypass boundary visibility
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return
+    const map = mapRef.current
+    if (!map.getLayer('sutter-bypass-boundary-fill')) return
+    const vis = sutterBypassVisible ? 'visible' : 'none'
+    map.setLayoutProperty('sutter-bypass-boundary-fill', 'visibility', vis)
+    map.setLayoutProperty('sutter-bypass-boundary-outline', 'visibility', vis)
+  }, [data, sutterBypassVisible, mapLoaded])
 
   // Sync stream-network visibility
   useEffect(() => {
@@ -740,7 +818,7 @@ export function Map({
     map.setLayoutProperty('streams-line', 'visibility', vis)
     map.setLayoutProperty('streams-mainstem-label', 'visibility', vis)
     map.setLayoutProperty('streams-tributary-label', 'visibility', vis)
-  }, [streamsVisible, mapLoaded])
+  }, [data, streamsVisible, mapLoaded])
 
   // Sync selection highlight filter
   useEffect(() => {

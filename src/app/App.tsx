@@ -32,6 +32,8 @@ export function App() {
   const [sacramentoWatershedVisible, setSacramentoWatershedVisible] = useState(initial.sacramentoWatershedVisible)
   const [sanJoaquinWatershedVisible, setSanJoaquinWatershedVisible] = useState(initial.sanJoaquinWatershedVisible)
   const [deltaBoundaryVisible, setDeltaBoundaryVisible] = useState(initial.deltaBoundaryVisible)
+  const [yoloBypassVisible, setYoloBypassVisible] = useState(initial.yoloBypassVisible)
+  const [sutterBypassVisible, setSutterBypassVisible] = useState(initial.sutterBypassVisible)
   const [streamsVisible, setStreamsVisible] = useState(initial.streamsVisible)
   const [projectSearch, setProjectSearch] = useState('')
   const [systemFilter, setSystemFilter] = useState('')
@@ -121,6 +123,22 @@ export function App() {
     })
   }, [])
 
+  const handleToggleYoloBypass = useCallback(() => {
+    setYoloBypassVisible(prev => {
+      const next = !prev
+      writeUrlState({ yoloBypassVisible: next })
+      return next
+    })
+  }, [])
+
+  const handleToggleSutterBypass = useCallback(() => {
+    setSutterBypassVisible(prev => {
+      const next = !prev
+      writeUrlState({ sutterBypassVisible: next })
+      return next
+    })
+  }, [])
+
   const handleToggleStreams = useCallback(() => {
     setStreamsVisible(prev => {
       const next = !prev
@@ -201,6 +219,8 @@ export function App() {
           sacramentoWatershedVisible={sacramentoWatershedVisible}
           sanJoaquinWatershedVisible={sanJoaquinWatershedVisible}
           deltaBoundaryVisible={deltaBoundaryVisible}
+          yoloBypassVisible={yoloBypassVisible}
+          sutterBypassVisible={sutterBypassVisible}
           streamsVisible={streamsVisible}
           initialCenter={[initial.lng, initial.lat]}
           initialZoom={initial.zoom}
@@ -233,6 +253,10 @@ export function App() {
           onToggleSanJoaquinWatershed={handleToggleSanJoaquinWatershed}
           deltaBoundaryVisible={deltaBoundaryVisible}
           onToggleDeltaBoundary={handleToggleDeltaBoundary}
+          yoloBypassVisible={yoloBypassVisible}
+          onToggleYoloBypass={handleToggleYoloBypass}
+          sutterBypassVisible={sutterBypassVisible}
+          onToggleSutterBypass={handleToggleSutterBypass}
           streamsVisible={streamsVisible}
           onToggleStreams={handleToggleStreams}
           open={layerPanelOpen}
