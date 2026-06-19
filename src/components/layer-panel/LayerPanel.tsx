@@ -17,6 +17,17 @@ const ALL_TYPES = [
   'other',
 ]
 
+const DISABLED_SWATCH = '#cbd3cc'
+const CONTEXT_LAYER_COLORS = {
+  sacramentoWatershed: '#4f8f8b',
+  mokelumneWatershed: '#7b8f34',
+  tuolumneWatershed: '#b07812',
+  deltaBoundary: '#00504b',
+  yoloBypass: '#d6901a',
+  sutterBypass: '#8e8934',
+  streams: '#5f9faa',
+}
+
 type LayerSectionId = 'basemap' | 'projectTypes' | 'boundaries' | 'hydrography'
 
 function capitalize(s: string): string {
@@ -84,8 +95,10 @@ interface Props {
   onToggleType: (type: string) => void
   sacramentoWatershedVisible: boolean
   onToggleSacramentoWatershed: () => void
-  sanJoaquinWatershedVisible: boolean
-  onToggleSanJoaquinWatershed: () => void
+  mokelumneWatershedVisible: boolean
+  onToggleMokelumneWatershed: () => void
+  tuolumneWatershedVisible: boolean
+  onToggleTuolumneWatershed: () => void
   deltaBoundaryVisible: boolean
   onToggleDeltaBoundary: () => void
   yoloBypassVisible: boolean
@@ -118,8 +131,10 @@ export function LayerPanel({
   onToggleType,
   sacramentoWatershedVisible,
   onToggleSacramentoWatershed,
-  sanJoaquinWatershedVisible,
-  onToggleSanJoaquinWatershed,
+  mokelumneWatershedVisible,
+  onToggleMokelumneWatershed,
+  tuolumneWatershedVisible,
+  onToggleTuolumneWatershed,
   deltaBoundaryVisible,
   onToggleDeltaBoundary,
   yoloBypassVisible,
@@ -234,7 +249,7 @@ export function LayerPanel({
                       />
                       <span
                         className={styles.dot}
-                        style={{ background: visible ? color : '#cccccc' }}
+                        style={{ background: visible ? color : DISABLED_SWATCH }}
                       />
                       <span className={styles.typeLabel} style={{ color: visible ? undefined : 'var(--text-tertiary)' }}>
                         {capitalize(type)}
@@ -261,7 +276,12 @@ export function LayerPanel({
                   />
                   <span
                     className={styles.dot}
-                    style={{ background: sacramentoWatershedVisible ? '#3f7f9f' : '#cccccc', borderRadius: 2 }}
+                    style={{
+                      background: sacramentoWatershedVisible
+                        ? CONTEXT_LAYER_COLORS.sacramentoWatershed
+                        : DISABLED_SWATCH,
+                      borderRadius: 2,
+                    }}
                   />
                   <span className={styles.typeLabel} style={{ color: sacramentoWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
                     Sacramento watershed
@@ -271,15 +291,40 @@ export function LayerPanel({
                   <input
                     type="checkbox"
                     className={styles.checkbox}
-                    checked={sanJoaquinWatershedVisible}
-                    onChange={onToggleSanJoaquinWatershed}
+                    checked={mokelumneWatershedVisible}
+                    onChange={onToggleMokelumneWatershed}
                   />
                   <span
                     className={styles.dot}
-                    style={{ background: sanJoaquinWatershedVisible ? '#5f8e57' : '#cccccc', borderRadius: 2 }}
+                    style={{
+                      background: mokelumneWatershedVisible
+                        ? CONTEXT_LAYER_COLORS.mokelumneWatershed
+                        : DISABLED_SWATCH,
+                      borderRadius: 2,
+                    }}
                   />
-                  <span className={styles.typeLabel} style={{ color: sanJoaquinWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
-                    San Joaquin watershed
+                  <span className={styles.typeLabel} style={{ color: mokelumneWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
+                    Mokelumne watershed
+                  </span>
+                </label>
+                <label className={styles.row}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={tuolumneWatershedVisible}
+                    onChange={onToggleTuolumneWatershed}
+                  />
+                  <span
+                    className={styles.dot}
+                    style={{
+                      background: tuolumneWatershedVisible
+                        ? CONTEXT_LAYER_COLORS.tuolumneWatershed
+                        : DISABLED_SWATCH,
+                      borderRadius: 2,
+                    }}
+                  />
+                  <span className={styles.typeLabel} style={{ color: tuolumneWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
+                    Tuolumne watershed
                   </span>
                 </label>
                 <label className={styles.row}>
@@ -291,7 +336,12 @@ export function LayerPanel({
                   />
                   <span
                     className={styles.dot}
-                    style={{ background: deltaBoundaryVisible ? '#72528f' : '#cccccc', borderRadius: 2 }}
+                    style={{
+                      background: deltaBoundaryVisible
+                        ? CONTEXT_LAYER_COLORS.deltaBoundary
+                        : DISABLED_SWATCH,
+                      borderRadius: 2,
+                    }}
                   />
                   <span className={styles.typeLabel} style={{ color: deltaBoundaryVisible ? undefined : 'var(--text-tertiary)' }}>
                     Legal Delta boundary
@@ -306,7 +356,12 @@ export function LayerPanel({
                   />
                   <span
                     className={styles.dot}
-                    style={{ background: yoloBypassVisible ? '#a45d2b' : '#cccccc', borderRadius: 2 }}
+                    style={{
+                      background: yoloBypassVisible
+                        ? CONTEXT_LAYER_COLORS.yoloBypass
+                        : DISABLED_SWATCH,
+                      borderRadius: 2,
+                    }}
                   />
                   <span className={styles.typeLabel} style={{ color: yoloBypassVisible ? undefined : 'var(--text-tertiary)' }}>
                     Yolo Bypass boundary
@@ -321,7 +376,12 @@ export function LayerPanel({
                   />
                   <span
                     className={styles.dot}
-                    style={{ background: sutterBypassVisible ? '#9b7a23' : '#cccccc', borderRadius: 2 }}
+                    style={{
+                      background: sutterBypassVisible
+                        ? CONTEXT_LAYER_COLORS.sutterBypass
+                        : DISABLED_SWATCH,
+                      borderRadius: 2,
+                    }}
                   />
                   <span className={styles.typeLabel} style={{ color: sutterBypassVisible ? undefined : 'var(--text-tertiary)' }}>
                     Sutter Bypass boundary
@@ -346,7 +406,10 @@ export function LayerPanel({
                   />
                   <span
                     className={styles.dot}
-                    style={{ background: streamsVisible ? '#4f9ac1' : '#cccccc', borderRadius: 2 }}
+                    style={{
+                      background: streamsVisible ? CONTEXT_LAYER_COLORS.streams : DISABLED_SWATCH,
+                      borderRadius: 2,
+                    }}
                   />
                   <span className={styles.typeLabel} style={{ color: streamsVisible ? undefined : 'var(--text-tertiary)' }}>
                     Stream network

@@ -35,7 +35,7 @@
   font-size: var(--text-xl);
   font-weight: var(--weight-bold);
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   line-height: 1.1;
 }
 

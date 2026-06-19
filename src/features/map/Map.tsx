@@ -70,6 +70,27 @@ const LABEL_LAYERS = [
   'highway-name-path',
 ]
 
+const PROJECT_AREA_LAYERS = ['projects-fill', 'projects-outline']
+const PROJECT_POINT_LAYERS = ['projects-point-path', 'projects-point-marker']
+const PROJECT_FILTERED_LAYERS = [...PROJECT_AREA_LAYERS, ...PROJECT_POINT_LAYERS]
+const PROJECT_INTERACTIVE_LAYERS = ['projects-fill', 'projects-point-path', 'projects-point-marker']
+const PROJECT_SELECTED_LAYERS = [
+  'projects-selected-halo',
+  'projects-selected-outline',
+  'projects-selected-point-path-fill',
+  'projects-selected-point-path-halo',
+  'projects-selected-point-path',
+  'projects-selected-point-halo',
+  'projects-selected-point',
+]
+
+const AREA_GEOMETRY_FILTER = ['==', ['geometry-type'], 'Polygon'] as unknown as maplibregl.FilterSpecification
+
+interface HoveredMapFeature {
+  source: string
+  id: number | string
+}
+
 function addImageryBasemap(map: maplibregl.Map) {
   if (!map.getSource('imagery-basemap')) {
     map.addSource('imagery-basemap', {
@@ -139,39 +160,39 @@ function addSubtleTerrainShading(map: maplibregl.Map) {
 }
 
 function quietBasemap(map: maplibregl.Map) {
-  setPaint(map, 'background', 'background-color', '#fafaf7')
+  setPaint(map, 'background', 'background-color', '#fbfbf5')
   addImageryBasemap(map)
   addSubtleTerrainShading(map)
 
-  setPaint(map, 'park', 'fill-color', '#f2f4ef')
-  setPaint(map, 'park', 'fill-opacity', 0.42)
-  setPaint(map, 'landcover_wood', 'fill-color', '#eef1ec')
-  setPaint(map, 'landcover_wood', 'fill-opacity', 0.35)
-  setPaint(map, 'landuse_residential', 'fill-color', '#f4f4f0')
+  setPaint(map, 'park', 'fill-color', '#eef3e5')
+  setPaint(map, 'park', 'fill-opacity', 0.46)
+  setPaint(map, 'landcover_wood', 'fill-color', '#e8efe1')
+  setPaint(map, 'landcover_wood', 'fill-opacity', 0.38)
+  setPaint(map, 'landuse_residential', 'fill-color', '#f4f5ef')
   setPaint(map, 'landuse_residential', 'fill-opacity', 0.32)
   setPaint(map, 'landcover_glacier', 'fill-opacity', 0.18)
   setPaint(map, 'landcover_ice_shelf', 'fill-opacity', 0.18)
 
-  setPaint(map, 'water', 'fill-color', '#edf3f5')
-  setPaint(map, 'water', 'fill-opacity', 0.68)
-  setPaint(map, 'waterway', 'line-color', '#cbdde4')
-  setPaint(map, 'waterway', 'line-opacity', 0.18)
+  setPaint(map, 'water', 'fill-color', '#e8f3f2')
+  setPaint(map, 'water', 'fill-opacity', 0.72)
+  setPaint(map, 'waterway', 'line-color', '#b8d7d5')
+  setPaint(map, 'waterway', 'line-opacity', 0.22)
 
   for (const layerId of ROAD_LINE_LAYERS) {
-    setPaint(map, layerId, 'line-color', '#deded8')
-    setPaint(map, layerId, 'line-opacity', 0.42)
+    setPaint(map, layerId, 'line-color', '#dedfd4')
+    setPaint(map, layerId, 'line-opacity', 0.38)
   }
 
-  setPaint(map, 'building', 'fill-color', '#f1f1ed')
-  setPaint(map, 'building', 'fill-outline-color', '#e6e6df')
-  setPaint(map, 'boundary_2', 'line-color', '#c9c9c2')
-  setPaint(map, 'boundary_2', 'line-opacity', 0.42)
-  setPaint(map, 'boundary_3', 'line-color', '#d1d1ca')
-  setPaint(map, 'boundary_disputed', 'line-color', '#d1d1ca')
+  setPaint(map, 'building', 'fill-color', '#f0f1eb')
+  setPaint(map, 'building', 'fill-outline-color', '#e4e6dc')
+  setPaint(map, 'boundary_2', 'line-color', '#bec8bc')
+  setPaint(map, 'boundary_2', 'line-opacity', 0.4)
+  setPaint(map, 'boundary_3', 'line-color', '#c9d0c4')
+  setPaint(map, 'boundary_disputed', 'line-color', '#c9d0c4')
 
   for (const layerId of LABEL_LAYERS) {
-    setPaint(map, layerId, 'text-color', '#4e4e49')
-    setPaint(map, layerId, 'text-halo-color', '#fafaf7')
+    setPaint(map, layerId, 'text-color', '#40575a')
+    setPaint(map, layerId, 'text-halo-color', '#fbfbf5')
     setPaint(map, layerId, 'text-halo-width', 1.2)
   }
 }
@@ -190,8 +211,8 @@ function syncBasemapMode(map: maplibregl.Map, mode: BasemapMode) {
   }
 
   for (const layerId of LABEL_LAYERS) {
-    setPaint(map, layerId, 'text-color', imagery ? '#f4f0e8' : '#4e4e49')
-    setPaint(map, layerId, 'text-halo-color', imagery ? '#171915' : '#fafaf7')
+    setPaint(map, layerId, 'text-color', imagery ? '#f6f2e8' : '#40575a')
+    setPaint(map, layerId, 'text-halo-color', imagery ? '#102f34' : '#fbfbf5')
     setPaint(map, layerId, 'text-halo-width', imagery ? 1.6 : 1.2)
   }
 }
@@ -244,6 +265,49 @@ function fitFeatureBounds(map: maplibregl.Map, features: Feature[], maxZoom = 12
   })
 }
 
+function layerVisibilityFilter(
+  layerId: string,
+  visibleDisplayIds: Set<string>,
+  allVisible: boolean
+): maplibregl.FilterSpecification | null {
+  const sourceFilter = PROJECT_AREA_LAYERS.includes(layerId) ? AREA_GEOMETRY_FILTER : null
+  if (allVisible) return sourceFilter ?? null
+
+  const visibilityFilter = (
+    visibleDisplayIds.size > 0
+      ? ['in', ['get', 'display_id'], ['literal', [...visibleDisplayIds]]]
+      : ['==', ['get', 'display_id'], '']
+  )
+
+  if (!sourceFilter) return visibilityFilter as unknown as maplibregl.FilterSpecification
+  return ['all', sourceFilter, visibilityFilter] as unknown as maplibregl.FilterSpecification
+}
+
+function layerSelectionFilter(
+  layerId: string,
+  selectedDisplayId: string | null
+): maplibregl.FilterSpecification {
+  const selectionFilter = (
+    selectedDisplayId
+      ? ['==', ['get', 'display_id'], selectedDisplayId]
+      : ['==', ['get', 'display_id'], '']
+  )
+
+  if (layerId.startsWith('projects-selected-point')) {
+    return selectionFilter as unknown as maplibregl.FilterSpecification
+  }
+
+  return ['all', AREA_GEOMETRY_FILTER, selectionFilter] as unknown as maplibregl.FilterSpecification
+}
+
+function projectSourceForLayer(layerId: string): string {
+  if (layerId.includes('point-path')) return 'project-point-paths'
+  if (layerId.includes('point-marker') || layerId === 'projects-selected-point') {
+    return 'project-point-markers'
+  }
+  return 'projects'
+}
+
 // MapLibre serializes array properties to JSON strings in event handlers.
 function parseList(value: unknown): string[] {
   if (Array.isArray(value)) return value as string[]
@@ -272,6 +336,99 @@ function addPrimaryType(raw: FeatureCollection): FeatureCollection {
   }
 }
 
+function positionsForGeometry(geometry: Geometry | null): Position[] {
+  const positions: Position[] = []
+  if (!geometry) return positions
+  if (geometry.type === 'GeometryCollection') {
+    for (const child of geometry.geometries) positions.push(...positionsForGeometry(child))
+    return positions
+  }
+  eachPosition(geometry.coordinates, position => positions.push(position))
+  return positions
+}
+
+function singlePointFeatures(raw: FeatureCollection): Feature[] {
+  return raw.features.filter(feature => feature.geometry?.type === 'Point')
+}
+
+function multiPointFeatures(raw: FeatureCollection): Feature[] {
+  return raw.features.filter(feature => feature.geometry?.type === 'MultiPoint')
+}
+
+function dedupePositions(positions: Position[]): Position[] {
+  const seen = new Set<string>()
+  const unique: Position[] = []
+  for (const position of positions) {
+    const key = `${position[0].toFixed(7)},${position[1].toFixed(7)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(position)
+  }
+  return unique
+}
+
+function squaredDistance(a: Position, b: Position): number {
+  const dx = a[0] - b[0]
+  const dy = a[1] - b[1]
+  return dx * dx + dy * dy
+}
+
+function orderPositionsForPath(positions: Position[]): Position[] {
+  const remaining = dedupePositions(positions)
+  if (remaining.length < 2) return remaining
+
+  const startIndex = remaining.reduce((westernmostIndex, position, index) => (
+    position[0] < remaining[westernmostIndex][0] ? index : westernmostIndex
+  ), 0)
+  const ordered = [remaining.splice(startIndex, 1)[0]]
+
+  while (remaining.length > 0) {
+    const current = ordered[ordered.length - 1]
+    const nextIndex = remaining.reduce((closestIndex, position, index) => (
+      squaredDistance(current, position) < squaredDistance(current, remaining[closestIndex])
+        ? index
+        : closestIndex
+    ), 0)
+    ordered.push(remaining.splice(nextIndex, 1)[0])
+  }
+
+  return ordered
+}
+
+function representativePosition(positions: Position[]): Position | null {
+  const ordered = orderPositionsForPath(positions)
+  if (ordered.length === 0) return null
+  return ordered[Math.floor(ordered.length / 2)]
+}
+
+function buildPointMarkerData(raw: FeatureCollection): FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: singlePointFeatures(raw).flatMap(feature => {
+      const position = representativePosition(positionsForGeometry(feature.geometry))
+      if (!position) return []
+      return [{
+        ...feature,
+        geometry: { type: 'Point', coordinates: position },
+      }]
+    }),
+  }
+}
+
+function buildPointPathData(raw: FeatureCollection): FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: multiPointFeatures(raw).flatMap(feature => {
+      const positions = orderPositionsForPath(positionsForGeometry(feature.geometry))
+      if (positions.length < 2) return []
+      return [{
+        ...feature,
+        geometry: { type: 'LineString', coordinates: positions },
+      }]
+    }),
+  }
+}
+
 interface MapProps {
   data: FeatureCollection | null
   basemap: BasemapMode
@@ -280,7 +437,8 @@ interface MapProps {
   fitVisibleRequest: number
   selectedDisplayId: string | null
   sacramentoWatershedVisible: boolean
-  sanJoaquinWatershedVisible: boolean
+  mokelumneWatershedVisible: boolean
+  tuolumneWatershedVisible: boolean
   deltaBoundaryVisible: boolean
   yoloBypassVisible: boolean
   sutterBypassVisible: boolean
@@ -300,7 +458,8 @@ export function Map({
   fitVisibleRequest,
   selectedDisplayId,
   sacramentoWatershedVisible,
-  sanJoaquinWatershedVisible,
+  mokelumneWatershedVisible,
+  tuolumneWatershedVisible,
   deltaBoundaryVisible,
   yoloBypassVisible,
   sutterBypassVisible,
@@ -313,7 +472,7 @@ export function Map({
 }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const hoveredIdRef = useRef<number | string | undefined>(undefined)
+  const hoveredFeatureRef = useRef<HoveredMapFeature | null>(null)
   const featureClickedRef = useRef(false)
   const onProjectSelectRef = useRef(onProjectSelect)
   const onProjectDeselectRef = useRef(onProjectDeselect)
@@ -352,16 +511,18 @@ export function Map({
       onMoveEndRef.current(c.lat, c.lng, map.getZoom())
     })
 
-    map.on('mousemove', 'projects-fill', e => {
+    const handleProjectMouseMove = (e: maplibregl.MapLayerMouseEvent) => {
       if (!e.features?.length) return
       const feature = e.features[0]
+      const source = projectSourceForLayer(feature.layer.id)
 
-      if (hoveredIdRef.current !== undefined) {
-        map.setFeatureState({ source: 'projects', id: hoveredIdRef.current }, { hovered: false })
+      if (hoveredFeatureRef.current) {
+        map.setFeatureState(hoveredFeatureRef.current, { hovered: false })
       }
-      hoveredIdRef.current = feature.id as number | string | undefined
-      if (hoveredIdRef.current !== undefined) {
-        map.setFeatureState({ source: 'projects', id: hoveredIdRef.current }, { hovered: true })
+      const featureId = feature.id as number | string | undefined
+      hoveredFeatureRef.current = featureId === undefined ? null : { source, id: featureId }
+      if (hoveredFeatureRef.current) {
+        map.setFeatureState(hoveredFeatureRef.current, { hovered: true })
       }
 
       const p = feature.properties as Record<string, unknown>
@@ -374,23 +535,29 @@ export function Map({
       })
 
       map.getCanvas().style.cursor = 'pointer'
-    })
+    }
 
-    map.on('mouseleave', 'projects-fill', () => {
-      if (hoveredIdRef.current !== undefined) {
-        map.setFeatureState({ source: 'projects', id: hoveredIdRef.current }, { hovered: false })
+    const handleProjectMouseLeave = () => {
+      if (hoveredFeatureRef.current) {
+        map.setFeatureState(hoveredFeatureRef.current, { hovered: false })
       }
-      hoveredIdRef.current = undefined
+      hoveredFeatureRef.current = null
       setTooltip(null)
       map.getCanvas().style.cursor = ''
-    })
+    }
 
-    map.on('click', 'projects-fill', e => {
+    const handleProjectClick = (e: maplibregl.MapLayerMouseEvent) => {
       featureClickedRef.current = true
       if (!e.features?.length) return
       const displayId = String(e.features[0].properties?.['display_id'] ?? '')
       if (displayId) onProjectSelectRef.current(displayId)
-    })
+    }
+
+    for (const layerId of PROJECT_INTERACTIVE_LAYERS) {
+      map.on('mousemove', layerId, handleProjectMouseMove)
+      map.on('mouseleave', layerId, handleProjectMouseLeave)
+      map.on('click', layerId, handleProjectClick)
+    }
 
     map.on('click', () => {
       if (featureClickedRef.current) {
@@ -429,31 +596,49 @@ export function Map({
       id: 'sacramento-watershed-fill',
       type: 'fill',
       source: 'sacramento-watershed',
-      paint: { 'fill-color': '#6f9fbd', 'fill-opacity': 0.04 },
+      paint: { 'fill-color': '#7fb6b2', 'fill-opacity': 0.035 },
     })
     map.addLayer({
       id: 'sacramento-watershed-outline',
       type: 'line',
       source: 'sacramento-watershed',
-      paint: { 'line-color': '#3f7f9f', 'line-width': 1.8, 'line-opacity': 0.82 },
+      paint: { 'line-color': '#4f8f8b', 'line-width': 1.6, 'line-opacity': 0.68 },
     })
 
-    // San Joaquin watershed boundary (HUC4 1804, below projects)
-    map.addSource('san-joaquin-watershed', {
+    // Mokelumne watershed boundary (WBD HUC8 18040012, below projects)
+    map.addSource('mokelumne-watershed', {
       type: 'geojson',
-      data: `${import.meta.env.BASE_URL}data/san-joaquin-watershed.geojson`,
+      data: `${import.meta.env.BASE_URL}data/mokelumne-watershed.geojson`,
     })
     map.addLayer({
-      id: 'san-joaquin-watershed-fill',
+      id: 'mokelumne-watershed-fill',
       type: 'fill',
-      source: 'san-joaquin-watershed',
-      paint: { 'fill-color': '#83a976', 'fill-opacity': 0.04 },
+      source: 'mokelumne-watershed',
+      paint: { 'fill-color': '#b5ae42', 'fill-opacity': 0.04 },
     })
     map.addLayer({
-      id: 'san-joaquin-watershed-outline',
+      id: 'mokelumne-watershed-outline',
       type: 'line',
-      source: 'san-joaquin-watershed',
-      paint: { 'line-color': '#5f8e57', 'line-width': 1.8, 'line-opacity': 0.84 },
+      source: 'mokelumne-watershed',
+      paint: { 'line-color': '#7b8f34', 'line-width': 1.8, 'line-opacity': 0.84 },
+    })
+
+    // Tuolumne watershed boundary (WBD HUC8 18040009, below projects)
+    map.addSource('tuolumne-watershed', {
+      type: 'geojson',
+      data: `${import.meta.env.BASE_URL}data/tuolumne-watershed.geojson`,
+    })
+    map.addLayer({
+      id: 'tuolumne-watershed-fill',
+      type: 'fill',
+      source: 'tuolumne-watershed',
+      paint: { 'fill-color': '#e7a53d', 'fill-opacity': 0.04 },
+    })
+    map.addLayer({
+      id: 'tuolumne-watershed-outline',
+      type: 'line',
+      source: 'tuolumne-watershed',
+      paint: { 'line-color': '#b07812', 'line-width': 1.8, 'line-opacity': 0.84 },
     })
 
     // Sacramento-San Joaquin Delta legal boundary (DWR i03_LegalDeltaBoundary).
@@ -465,14 +650,14 @@ export function Map({
       id: 'delta-boundary-fill',
       type: 'fill',
       source: 'delta-boundary',
-      paint: { 'fill-color': '#817094', 'fill-opacity': 0.035 },
+      paint: { 'fill-color': '#00504b', 'fill-opacity': 0.035 },
     })
     map.addLayer({
       id: 'delta-boundary-outline',
       type: 'line',
       source: 'delta-boundary',
       paint: {
-        'line-color': '#72528f',
+        'line-color': '#00504b',
         'line-width': [
           'interpolate', ['linear'], ['zoom'],
           6, 1.6,
@@ -493,14 +678,14 @@ export function Map({
       id: 'yolo-bypass-boundary-fill',
       type: 'fill',
       source: 'yolo-bypass-boundary',
-      paint: { 'fill-color': '#b86b31', 'fill-opacity': 0.045 },
+      paint: { 'fill-color': '#e7a53d', 'fill-opacity': 0.045 },
     })
     map.addLayer({
       id: 'yolo-bypass-boundary-outline',
       type: 'line',
       source: 'yolo-bypass-boundary',
       paint: {
-        'line-color': '#a45d2b',
+        'line-color': '#d6901a',
         'line-width': [
           'interpolate', ['linear'], ['zoom'],
           6, 1.5,
@@ -519,14 +704,14 @@ export function Map({
       id: 'sutter-bypass-boundary-fill',
       type: 'fill',
       source: 'sutter-bypass-boundary',
-      paint: { 'fill-color': '#b8942b', 'fill-opacity': 0.045 },
+      paint: { 'fill-color': '#b5ae42', 'fill-opacity': 0.045 },
     })
     map.addLayer({
       id: 'sutter-bypass-boundary-outline',
       type: 'line',
       source: 'sutter-bypass-boundary',
       paint: {
-        'line-color': '#9b7a23',
+        'line-color': '#8e8934',
         'line-width': [
           'interpolate', ['linear'], ['zoom'],
           6, 1.5,
@@ -551,7 +736,7 @@ export function Map({
       'source-layer': 'streams',
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': '#4f9ac1',
+        'line-color': '#5f9faa',
         'line-opacity': 0.64,
         // Width grows with both zoom and Strahler stream order. The tile build
         // only ships 5th-order-and-larger flowlines to keep this base layer quiet.
@@ -569,7 +754,7 @@ export function Map({
       source: 'streams',
       'source-layer': 'waterbodies',
       paint: {
-        'fill-color': '#c5e3ed',
+        'fill-color': '#cfe4e5',
         'fill-opacity': [
           'interpolate', ['linear'], ['zoom'],
           5, 0.62,
@@ -583,7 +768,7 @@ export function Map({
       source: 'streams',
       'source-layer': 'waterbodies',
       paint: {
-        'line-color': '#5f9fb8',
+        'line-color': '#7faeb3',
         'line-opacity': 0.54,
         'line-width': [
           'interpolate', ['linear'], ['zoom'],
@@ -623,8 +808,8 @@ export function Map({
         'text-rotation-alignment': 'map',
       },
       paint: {
-        'text-color': '#276f91',
-        'text-halo-color': '#fafaf7',
+        'text-color': '#4e7f87',
+        'text-halo-color': '#fbfbf5',
         'text-halo-width': 1.6,
         'text-halo-blur': 0.4,
         'text-opacity': [
@@ -665,8 +850,8 @@ export function Map({
         'text-rotation-alignment': 'map',
       },
       paint: {
-        'text-color': '#3c7f9e',
-        'text-halo-color': '#fafaf7',
+        'text-color': '#5f8d94',
+        'text-halo-color': '#fbfbf5',
         'text-halo-width': 1.5,
         'text-halo-blur': 0.4,
         'text-opacity': [
@@ -681,11 +866,22 @@ export function Map({
     // Project layers
     const prepared = addPrimaryType(data)
     map.addSource('projects', { type: 'geojson', data: prepared, generateId: true })
+    map.addSource('project-point-markers', {
+      type: 'geojson',
+      data: buildPointMarkerData(prepared),
+      generateId: true,
+    })
+    map.addSource('project-point-paths', {
+      type: 'geojson',
+      data: buildPointPathData(prepared),
+      generateId: true,
+    })
 
     map.addLayer({
       id: 'projects-fill',
       type: 'fill',
       source: 'projects',
+      filter: AREA_GEOMETRY_FILTER,
       paint: {
         'fill-color': TYPE_MATCH_EXPR,
         'fill-opacity': ['case', ['boolean', ['feature-state', 'hovered'], false], 0.75, 0.5],
@@ -695,27 +891,122 @@ export function Map({
       id: 'projects-outline',
       type: 'line',
       source: 'projects',
+      filter: AREA_GEOMETRY_FILTER,
       paint: {
         'line-color': TYPE_MATCH_EXPR,
         'line-width': ['case', ['boolean', ['feature-state', 'hovered'], false], 2, 1],
         'line-opacity': 0.9,
       },
     })
+    map.addLayer({
+      id: 'projects-point-path',
+      type: 'line',
+      source: 'project-point-paths',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': TYPE_MATCH_EXPR,
+        'line-width': [
+          'case',
+          ['boolean', ['feature-state', 'hovered'], false],
+          ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 18, 14, 34],
+          ['interpolate', ['linear'], ['zoom'], 5, 6, 10, 14, 14, 28],
+        ],
+        'line-opacity': ['case', ['boolean', ['feature-state', 'hovered'], false], 0.42, 0.28],
+      },
+    })
+    map.addLayer({
+      id: 'projects-point-marker',
+      type: 'circle',
+      source: 'project-point-markers',
+      paint: {
+        'circle-color': TYPE_MATCH_EXPR,
+        'circle-radius': [
+          'case',
+          ['boolean', ['feature-state', 'hovered'], false],
+          ['interpolate', ['linear'], ['zoom'], 5, 5.5, 10, 7, 14, 8.5],
+          ['interpolate', ['linear'], ['zoom'], 5, 4, 10, 5.5, 14, 7],
+        ],
+        'circle-opacity': ['case', ['boolean', ['feature-state', 'hovered'], false], 0.95, 0.78],
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hovered'], false], 2.2, 1.5],
+        'circle-stroke-opacity': 0.92,
+      },
+    })
 
-    const noMatch = ['==', ['get', 'display_id'], ''] as unknown as maplibregl.FilterSpecification
     map.addLayer({
       id: 'projects-selected-halo',
       type: 'line',
       source: 'projects',
-      filter: noMatch,
+      filter: layerSelectionFilter('projects-selected-halo', null),
       paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 0.95 },
     })
     map.addLayer({
       id: 'projects-selected-outline',
       type: 'line',
       source: 'projects',
-      filter: noMatch,
+      filter: layerSelectionFilter('projects-selected-outline', null),
       paint: { 'line-color': TYPE_MATCH_EXPR, 'line-width': 2.5, 'line-opacity': 1 },
+    })
+    map.addLayer({
+      id: 'projects-selected-point-path-fill',
+      type: 'line',
+      source: 'project-point-paths',
+      filter: layerSelectionFilter('projects-selected-point-path-fill', null),
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': TYPE_MATCH_EXPR,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 18, 14, 34],
+        'line-opacity': 0.36,
+      },
+    })
+    map.addLayer({
+      id: 'projects-selected-point-path-halo',
+      type: 'line',
+      source: 'project-point-paths',
+      filter: layerSelectionFilter('projects-selected-point-path-halo', null),
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#ffffff',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 4.6, 10, 8.5, 14, 13],
+        'line-opacity': 0.72,
+      },
+    })
+    map.addLayer({
+      id: 'projects-selected-point-path',
+      type: 'line',
+      source: 'project-point-paths',
+      filter: layerSelectionFilter('projects-selected-point-path', null),
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': TYPE_MATCH_EXPR,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1.4, 10, 2.2, 14, 3],
+        'line-opacity': 0.9,
+      },
+    })
+    map.addLayer({
+      id: 'projects-selected-point-halo',
+      type: 'circle',
+      source: 'project-point-markers',
+      filter: layerSelectionFilter('projects-selected-point-halo', null),
+      paint: {
+        'circle-color': '#ffffff',
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 10, 14, 12],
+        'circle-opacity': 0.92,
+      },
+    })
+    map.addLayer({
+      id: 'projects-selected-point',
+      type: 'circle',
+      source: 'project-point-markers',
+      filter: layerSelectionFilter('projects-selected-point', null),
+      paint: {
+        'circle-color': TYPE_MATCH_EXPR,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 4.8, 10, 6.6, 14, 8.5],
+        'circle-opacity': 0.98,
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': 1.6,
+        'circle-stroke-opacity': 0.96,
+      },
     })
   }, [data, mapLoaded])
 
@@ -725,17 +1016,9 @@ export function Map({
     const map = mapRef.current
     if (!map.getLayer('projects-fill')) return
 
-    if (!data || visibleDisplayIds.size === data.features.length) {
-      map.setFilter('projects-fill', null)
-      map.setFilter('projects-outline', null)
-    } else {
-      const filter = (
-        visibleDisplayIds.size > 0
-          ? ['in', ['get', 'display_id'], ['literal', [...visibleDisplayIds]]]
-          : ['==', ['get', 'display_id'], '']
-      ) as unknown as maplibregl.FilterSpecification
-      map.setFilter('projects-fill', filter)
-      map.setFilter('projects-outline', filter)
+    const allVisible = !data || visibleDisplayIds.size === data.features.length
+    for (const layerId of PROJECT_FILTERED_LAYERS) {
+      map.setFilter(layerId, layerVisibilityFilter(layerId, visibleDisplayIds, allVisible))
     }
   }, [data, mapLoaded, visibleDisplayIds])
 
@@ -767,15 +1050,25 @@ export function Map({
     map.setLayoutProperty('sacramento-watershed-outline', 'visibility', vis)
   }, [data, sacramentoWatershedVisible, mapLoaded])
 
-  // Sync San Joaquin watershed visibility
+  // Sync Mokelumne watershed visibility
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) return
     const map = mapRef.current
-    if (!map.getLayer('san-joaquin-watershed-fill')) return
-    const vis = sanJoaquinWatershedVisible ? 'visible' : 'none'
-    map.setLayoutProperty('san-joaquin-watershed-fill', 'visibility', vis)
-    map.setLayoutProperty('san-joaquin-watershed-outline', 'visibility', vis)
-  }, [data, sanJoaquinWatershedVisible, mapLoaded])
+    if (!map.getLayer('mokelumne-watershed-fill')) return
+    const vis = mokelumneWatershedVisible ? 'visible' : 'none'
+    map.setLayoutProperty('mokelumne-watershed-fill', 'visibility', vis)
+    map.setLayoutProperty('mokelumne-watershed-outline', 'visibility', vis)
+  }, [data, mokelumneWatershedVisible, mapLoaded])
+
+  // Sync Tuolumne watershed visibility
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return
+    const map = mapRef.current
+    if (!map.getLayer('tuolumne-watershed-fill')) return
+    const vis = tuolumneWatershedVisible ? 'visible' : 'none'
+    map.setLayoutProperty('tuolumne-watershed-fill', 'visibility', vis)
+    map.setLayoutProperty('tuolumne-watershed-outline', 'visibility', vis)
+  }, [data, tuolumneWatershedVisible, mapLoaded])
 
   // Sync Delta legal boundary visibility
   useEffect(() => {
@@ -826,14 +1119,9 @@ export function Map({
     const map = mapRef.current
     if (!map.getLayer('projects-selected-halo')) return
 
-    const filter = (
-      selectedDisplayId
-        ? ['==', ['get', 'display_id'], selectedDisplayId]
-        : ['==', ['get', 'display_id'], '']
-    ) as unknown as maplibregl.FilterSpecification
-
-    map.setFilter('projects-selected-halo', filter)
-    map.setFilter('projects-selected-outline', filter)
+    for (const layerId of PROJECT_SELECTED_LAYERS) {
+      map.setFilter(layerId, layerSelectionFilter(layerId, selectedDisplayId))
+    }
   }, [selectedDisplayId, mapLoaded])
 
   return (

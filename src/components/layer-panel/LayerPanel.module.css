@@ -243,7 +243,7 @@
 }
 
 .projectItemSelected {
-  border-color: rgba(27, 126, 184, 0.42);
+  border-color: rgba(0, 80, 75, 0.42);
   background: var(--accent-light);
 }
 

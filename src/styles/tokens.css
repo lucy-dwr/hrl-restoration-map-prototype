@@ -19,17 +19,17 @@
 
   /* Surfaces */
   --surface-0: #ffffff;
-  --surface-1: #f7f7f6;
-  --surface-2: #eeeeed;
+  --surface-1: #f7f8f4;
+  --surface-2: #eef2e8;
 
   /* Text */
-  --text-primary: #111111;
-  --text-secondary: #4a4a48;
-  --text-tertiary: #767673;
+  --text-primary: #102f34;
+  --text-secondary: #40575a;
+  --text-tertiary: #64746f;
 
   /* Borders */
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-default: rgba(0, 0, 0, 0.12);
+  --border-subtle: rgba(2, 48, 54, 0.08);
+  --border-default: rgba(2, 48, 54, 0.16);
 
   /* Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -38,9 +38,11 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
 
   /* Brand / accent */
-  --accent: #1b7eb8;
-  --accent-hover: #1567a0;
-  --accent-light: rgba(27, 126, 184, 0.10);
+  --accent: #00504b;
+  --accent-hover: #023036;
+  --accent-light: rgba(0, 80, 75, 0.10);
+  --accent-warm: #b07812;
+  --accent-warm-light: rgba(231, 165, 61, 0.16);
 
   /* Radius */
   --radius-sm: 4px;

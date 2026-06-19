@@ -13,7 +13,7 @@
   position: absolute;
   pointer-events: none;
   background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   padding: 8px 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
@@ -25,20 +25,20 @@
 }
 
 .tooltipName {
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 600;
-  color: #111;
+  color: var(--text-primary);
   line-height: 1.3;
 }
 
 .tooltipType {
-  font-size: 12px;
-  color: #555;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   line-height: 1.3;
 }
 
 .tooltipAcreage {
-  font-size: 12px;
-  color: #333;
+  font-size: var(--text-sm);
+  color: var(--accent);
   margin-top: 2px;
 }
