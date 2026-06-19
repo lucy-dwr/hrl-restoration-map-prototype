@@ -7,3 +7,4 @@
 
 geopandas>=0.14
 py7zr>=0.21
+shapely>=2.0
