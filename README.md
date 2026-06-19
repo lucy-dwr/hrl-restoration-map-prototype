@@ -24,18 +24,24 @@ The prototype includes:
   `public/data/projects.geojson`
 - Project-type color symbology, hover tooltip, and click-to-inspect selection
 - Top bar, headline metric tiles, and right-side project detail panel
-- Left-rail layer controls for project types, watershed boundaries, the Delta
-  legal boundary, the stream network, and the basemap
+- Left-rail controls with separate Layers and Projects tabs
+- Searchable/filterable project list with project selection, zoom-to-project,
+  and fit-to-visible-projects actions
+- Filter-aware headline metric tiles
+- Layer controls for project types, watershed boundaries, the Delta legal
+  boundary, the stream network, and the basemap
 - Sacramento and San Joaquin watershed boundaries from USGS WBD HUC4 1802 and
   1804
 - Sacramento-San Joaquin Delta legal boundary from DWR
-- California stream-network PMTiles from NHDPlus V2
+- California stream-network PMTiles from NHDPlus V2, including dynamic river
+  labels for named mainstems and major tributaries
+- Quiet light basemap with DEM hillshade terrain context plus optional Esri
+  World Imagery inspection mode
 - URL state for map center, zoom, selected project, hidden project types,
   basemap mode, boundary visibility, and stream-network visibility
 
 Not yet included:
 
-- Non-map accessible project list
 - About and methodology page
 - Download data affordance
 

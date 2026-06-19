@@ -68,8 +68,9 @@ Design implication: the dashboard must be visually polished enough for the publi
 | Click-to-inspect detail panel | ✅ |
 | Layer toggle panel with project types, watershed boundaries, Delta boundary, and stream network | ✅ |
 | Map / imagery basemap toggle | ✅ |
+| Searchable/filterable project list and non-map browsing equivalent | ✅ prototype |
+| Fit-to-visible-projects and zoom-to-project map actions | ✅ |
 | URL-encoded state | ✅ |
-| Non-map accessible equivalent | ❌ pending |
 | About / methodology page | ❌ pending |
 | Download data affordance | ❌ pending |
 
@@ -102,7 +103,7 @@ Design implication: the dashboard must be visually polished enough for the publi
 - Watershed summary views.
 - Optional monitoring data overlays (water quality, fish, vegetation) where data are available and approved for public display.
 - Scrollytelling chapter(s) — one or two flagship project narratives.
-- Search (project name, watershed, agency).
+- Advanced search and saved filtering beyond the prototype project-list filters.
 - Full adaptive management views: synthesis of monitoring data tied to project actions.
 - Multi-chapter storytelling integrated with the main map.
 - Possible saved-view / subscription functionality (deferred — only if real demand emerges).
@@ -152,11 +153,11 @@ Responsive breakpoints (initial proposal):
 
 Custom MapLibre style. Desaturated, low-contrast, designed to recede behind data layers. Two variants:
 
-- **Light** (default) — warm pale base, muted hydrography, restrained labels.
+- **Light** (default) — warm pale base, muted hydrography, restrained labels, and MapLibre-rendered DEM hillshade terrain context.
 - **Dark** — optional, deferred to near-future if there is demand.
 - **Satellite/aerial imagery** — prototype optional toggle using Esri World Imagery, visually subdued so project and context layers remain primary (Decision 27).
 
-Prototype tile source: OpenFreeMap Positron style (Decision 19) — desaturated, no API key, loads without local Azure setup. Production target: Protomaps tiles served from Azure Blob, which fits the Azure-Blob-as-substrate decision and avoids per-request tile fees.
+Prototype tile source: OpenFreeMap Positron style (Decision 19) with local style overrides for a quiet paper-map feel, plus AWS Terrarium DEM tiles for hillshade terrain and Esri World Imagery for optional imagery inspection. Production target: Protomaps tiles served from Azure Blob, which fits the Azure-Blob-as-substrate decision and avoids per-request tile fees.
 
 ### 6.2 Data palette
 
@@ -200,8 +201,16 @@ The map, the tile strip, and any chart panels are views over a single shared app
 ### 7.4 Layer logic
 
 - Layers are independently toggleable.
-- Project-type layers default ON; administrative-boundary layers default OFF (except a single light watershed boundary).
+- Project-type layers default ON. Sacramento and San Joaquin HUC4 watershed outlines default ON as regional context; the Delta legal boundary defaults OFF because it is reference context. The stream network defaults ON.
 - Layer order is fixed and not user-configurable in v1 (defer drag-to-reorder).
+
+### 7.5 Project browsing and filtering
+
+- The left rail includes a Projects tab that is the prototype's non-map browsing equivalent for project records.
+- Project list search currently matches project name, lead entity, system, project type, project stage, and target species.
+- Project list filters currently include system and early-implementation status, and they coordinate with project-type layer visibility.
+- The map, project list, and headline tiles are coordinated over the same filtered project set.
+- Users can zoom to an individual project from the list or detail panel, and can fit the map to all currently visible projects.
 
 ---
 
@@ -230,7 +239,7 @@ What gets encoded:
 &basemap=imagery                        # imagery basemap selected (absent = map)
 ```
 
-Implemented in `src/lib/url-state.ts`. A `url-state.md` sub-spec would document the full encoding contract for future consumers (e.g., when filter arrays grow large enough to warrant a base64 blob).
+Implemented in `src/lib/url-state.ts`. Current project list search, system filter, and early-implementation filter are local UI state rather than URL-encoded state; encoding those filters remains a v1 hardening task. A `url-state.md` sub-spec would document the full encoding contract for future consumers (e.g., when filter arrays grow large enough to warrant a base64 blob).
 
 ---
 
@@ -320,7 +329,7 @@ To be elaborated in a `layer-catalog.md` sub-spec. Minimum set:
 - Project locations (one logical layer, styled by project type)
 - Watershed boundaries — prototype uses Sacramento HUC4 1802 and San Joaquin HUC4 1804 outlines from USGS WBD (Decision 24)
 - Sacramento-San Joaquin Delta legal boundary — prototype uses the DWR `i03_LegalDeltaBoundary` ArcGIS service, default hidden (Decision 25)
-- Stream network — prototype uses NHDPlus V2 VPU 18 flowlines and water polygons tiled to PMTiles, default visible (Decision 26)
+- Stream network — prototype uses NHDPlus V2 VPU 18 flowlines and water polygons tiled to PMTiles, default visible, with line-following labels for named mainstems and major tributaries (Decision 26)
 - Basemap (hydrography, terrain, administrative reference, optional imagery)
 
 Additional layers under consideration (see Open Questions): finer-grained watershed units (HUC8 subbasins) and administrative boundaries (county, water district, fish management zone).
@@ -407,6 +416,7 @@ The exact contract between the two repos lives in a `data-contract.md` sub-spec,
 - **Accessibility target:** This product will be designed to exceed minimum compliance and manifest disability access as a core public-service requirement. The application must conform to WCAG 2.2 Level AA and should meet selected WCAG 2.2 Level AAA criteria where applicable, especially for contrast, readability, instructions, help, and cognitive accessibility.
 - **Interface accessibility:** All custom interface components must use native HTML controls where possible or follow WAI-ARIA Authoring Practices. All interactive elements must be keyboard-reachable and screen-reader-labeled.
 - **Non-map equivalent:** Because the product is an interactive mapping application, all essential map content and workflows must also be available through an equivalent keyboard-accessible, screen-reader-readable, non-map interface, including searchable/filterable project lists, project detail views, summary statistics, and accessible data downloads.
+- **Prototype non-map equivalent status:** The current prototype includes a searchable/filterable Projects tab, list-driven selection, fit-to-visible-projects, and zoom-to-project actions. Accessible data downloads and a fuller assistive-technology audit remain pending.
 - **No visual-only essentials:** No essential information may be conveyed only through color, hover, spatial position, pointer interaction, animation, or visual interpretation of the map.
 - **Performance budgets (initial):**
   - Time-to-interactive on a recent laptop on broadband: <3s.
@@ -505,3 +515,5 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 26 | 2026-06-19 | Prototype stream-network base layer is generated from NHDPlus V2 VPU 18 and shipped as `public/data/streams.pmtiles`, with zoom-dependent reveal by Strahler stream order. | NHDPlus V2 provides statewide California flow-network attributes needed for scale-aware rendering; PMTiles keeps the large hydrography layer browser-feasible. |
 | 27 | 2026-06-19 | Prototype offers an optional Esri World Imagery basemap toggle while keeping the subdued OpenFreeMap map basemap as default. | Imagery helps users inspect real landscape context for selected areas, but the quieter map basemap remains better for first-load programme communication. |
 | 28 | 2026-06-19 | Sacramento watershed data and code identifiers use explicit Sacramento naming: `public/data/sacramento-watershed.geojson`, `sacramento-watershed` map source/layers, and `sacramento=0` URL state. | Adding the San Joaquin watershed made the previous generic `watershed` names ambiguous; parallel naming keeps the two HUC4 context layers clear. |
+| 29 | 2026-06-19 | Prototype light basemap includes MapLibre-rendered DEM hillshade terrain context. | Terrain makes watershed structure legible without switching to a noisy topographic basemap; rendering from DEM tiles avoids the fuzzy appearance of low-resolution relief imagery. |
+| 30 | 2026-06-19 | Prototype left rail includes a Projects tab with search, system and early-implementation filters, list-driven selection, zoom-to-project, and fit-to-visible-projects. | The dashboard needs a non-map browsing path before the project dataset grows; coordinating list, map, and headline tiles over one filtered project set keeps the experience coherent. |

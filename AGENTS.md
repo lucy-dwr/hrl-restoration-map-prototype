@@ -10,17 +10,18 @@ The prototype is substantially built. What exists:
 
 - Full-bleed MapLibre map rendering project polygons from `public/data/projects.geojson`, with project-type colour symbology, hover tooltip, and click-to-inspect selection.
 - Top bar (HRL identity + About link placeholder).
-- Headline tiles strip (project count, total submitted acreage, early-implementation count).
-- Right-side detail panel with type badges, description, overview, acreage breakdown, target species, and funding sources.
-- Left-rail layer panel with basemap radio controls, per-type visibility checkboxes, Sacramento and San Joaquin watershed toggles, a Delta legal-boundary toggle, and a stream-network toggle.
+- Filter-aware headline tiles strip (project count, total submitted acreage, early-implementation count).
+- Right-side detail panel with type badges, description, overview, acreage breakdown, target species, funding sources, and zoom-to-project action.
+- Left-rail panel with Layers and Projects tabs. The Layers tab has basemap radio controls, per-type visibility checkboxes, Sacramento and San Joaquin watershed toggles, a Delta legal-boundary toggle, and a stream-network toggle. The Projects tab has search, system and early-implementation filters, an accessible project list, project selection/zoom actions, and fit-to-visible-projects.
 - Sacramento watershed boundary layer (`public/data/sacramento-watershed.geojson`) sourced from USGS WBD HUC4 1802.
 - San Joaquin watershed boundary layer (`public/data/san-joaquin-watershed.geojson`) sourced from USGS WBD HUC4 1804.
 - Sacramento-San Joaquin Delta legal boundary layer (`public/data/delta-boundary.geojson`) sourced from the DWR `i03_LegalDeltaBoundary` ArcGIS service.
-- California stream-network base layer (`public/data/streams.pmtiles`) built from NHDPlus V2 (VPU 18), served as vector tiles via the `pmtiles://` protocol with zoom-dependent reveal by Strahler stream order.
+- California stream-network base layer (`public/data/streams.pmtiles`) built from NHDPlus V2 (VPU 18), served as vector tiles via the `pmtiles://` protocol with zoom-dependent reveal by Strahler stream order and dynamic labels for named mainstems / major tributaries.
+- Quiet light basemap with MapLibre-rendered DEM hillshade terrain context, plus optional Esri World Imagery inspection mode.
 - URL state encoding map centre/zoom, selected project, hidden types, basemap mode, boundary visibility, and stream-network visibility as query parameters.
 - Design tokens in `src/styles/tokens.css`; WCAG-AA-passing colour contrast for all text.
 
-**Not yet built (v1 requirements):** non-map accessible equivalent (project list), About/methodology page, download data affordance.
+**Not yet built (v1 requirements):** About/methodology page, download data affordance. The project-list non-map equivalent exists, but still needs broader keyboard/screen-reader audit coverage before calling accessibility complete.
 
 ## Repository Layout
 
