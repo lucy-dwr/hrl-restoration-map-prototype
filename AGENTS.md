@@ -32,6 +32,7 @@ hrl-restoration-map-prototype/
 ├── AGENTS.md                  # Coding-agent and contribution instructions
 ├── SPEC.md                    # Umbrella product and architecture spec
 ├── README.md                  # Human-facing setup and contribution overview
+├── beta-testing/              # Structured beta testing protocol and form content
 ├── data/
 │   └── source/                # Local prototype source data, including GeoPackage files
 ├── public/

@@ -30,6 +30,8 @@ applicable.
   context and links to CNRA and HRL source pages.
 - Added a Download data menu with public project downloads as GeoJSON,
   GeoPackage, and non-spatial CSV.
+- Added a structured beta testing process and external form content in
+  `beta-testing/`.
 
 ### Changed
 
