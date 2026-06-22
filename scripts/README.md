@@ -14,9 +14,18 @@ pip install -r scripts/requirements.txt
 ## `convert-gpkg.py`
 
 Converts the source GeoPackage in `data/source/` into
-`public/data/projects.geojson`, validating and normalizing properties against
-`RestorationProjectSubmission` in
+`public/data/hrl_restoration_projects.geojson`,
+`public/data/hrl_restoration_projects.gpkg`, and
+`public/data/hrl_restoration_projects.csv`, validating and normalizing
+properties against `RestorationProjectSubmission` in
 `schemas/hrl/linkml/hrl_restoration_project.yaml`.
+
+The GeoJSON output keeps multivalued fields as arrays for browser use. The
+GeoPackage and CSV outputs flatten those fields to semicolon-delimited strings
+for GIS and spreadsheet compatibility. The CSV is attributes-only and does not
+include geometry. All three public outputs exclude private/contact fields,
+source submission metadata, internal comment fields, and non-public funding-gap
+fields.
 
 ## `fetch-watershed.py`
 

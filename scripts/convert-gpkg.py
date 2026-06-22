@@ -7,15 +7,18 @@ Usage:
     python3 scripts/convert-gpkg.py
 
 Reads:  data/source/2026-06-19-v01.gpkg  (restoration_projects layer)
-Writes: public/data/projects.geojson     (WGS84 / EPSG:4326, arrays normalized)
-        public/data/projects.gpkg        (WGS84 / EPSG:4326, arrays as semicolons)
-        public/data/projects.csv         (no geometry, arrays as semicolons)
+Writes: public/data/hrl_restoration_projects.geojson
+          (WGS84 / EPSG:4326, arrays normalized)
+        public/data/hrl_restoration_projects.gpkg
+          (WGS84 / EPSG:4326, arrays as semicolons)
+        public/data/hrl_restoration_projects.csv
+          (no geometry, arrays as semicolons)
 
 Normalizes multivalued fields from semicolon-delimited strings to arrays for the
 GeoJSON output. The GeoPackage and CSV outputs use semicolon-delimited strings
 so that standard GIS and spreadsheet tools can read the field values without
 further processing.
-Strips private fields. Adds display_* derived fields.
+Strips private and public-download excluded fields. Adds display_id.
 Validates required RestorationProjectSubmission fields and emits warnings.
 """
 
@@ -31,9 +34,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent
 GPKG = REPO_ROOT / "data/source/2026-06-19-v01.gpkg"
 LAYER = "restoration_projects"
-OUT = REPO_ROOT / "public/data/projects.geojson"
-GPKG_OUT = REPO_ROOT / "public/data/projects.gpkg"
-CSV_OUT = REPO_ROOT / "public/data/projects.csv"
+OUT = REPO_ROOT / "public/data/hrl_restoration_projects.geojson"
+GPKG_OUT = REPO_ROOT / "public/data/hrl_restoration_projects.gpkg"
+CSV_OUT = REPO_ROOT / "public/data/hrl_restoration_projects.csv"
 
 # Multivalued fields stored as semicolon-delimited strings in the source
 # Schema annotation: submission_serialization: semicolon_delimited
@@ -50,6 +53,20 @@ PRIVATE_FIELDS = {
     "contact_name",
     "contact_email",
     "funding_secured"
+}
+
+PUBLIC_DOWNLOAD_EXCLUDED_FIELDS = {
+    "source_slug",
+    "source_agency",
+    "submission_version",
+    "source_file",
+    "source_feature_number",
+    "estimated_budget_comments",
+    "construction_completion_year_comments",
+    "funding_gap",
+    "display_name",
+    "display_acreage",
+    "display_stage",
 }
 
 # Required public fields per RestorationProjectSubmission (geometry is implicit)
@@ -195,12 +212,11 @@ def process_feature(
         if val is None or val == [] or val == "":
             warnings.append(f"fid={fid}: required field '{field}' is null or empty")
 
-    # Derived display fields
+    # Stable public ID for URL state and map/list selection.
     props["display_id"] = f"project-{fid}"
-    props["display_name"] = props.get("project_name")
-    props["display_acreage"] = props.get("acreage")
-    stages = props.get("project_stage")
-    props["display_stage"] = stages[0] if stages else None
+
+    for field in PUBLIC_DOWNLOAD_EXCLUDED_FIELDS:
+        props.pop(field, None)
 
     return {**feature, "properties": props}, warnings
 
