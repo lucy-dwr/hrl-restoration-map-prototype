@@ -1,4 +1,59 @@
+import { useState, useRef, useEffect } from 'react'
 import styles from './TopBar.module.css'
+
+function DownloadMenu() {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  return (
+    <div ref={ref} className={styles.downloadWrapper}>
+      <button
+        type="button"
+        className={styles.navLink}
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        Download data
+      </button>
+      {open && (
+        <div className={styles.downloadMenu} role="menu">
+          <a
+            href="data/projects.geojson"
+            download="projects.geojson"
+            className={styles.downloadItem}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            <span className={styles.downloadFormat}>GeoJSON</span>
+            <span className={styles.downloadDesc}>For web mapping and scripting</span>
+          </a>
+          <a
+            href="data/projects.gpkg"
+            download="projects.gpkg"
+            className={styles.downloadItem}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            <span className={styles.downloadFormat}>GeoPackage</span>
+            <span className={styles.downloadDesc}>For QGIS, ArcGIS, and other GIS tools</span>
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface TopBarProps {
   onAboutOpen: () => void
@@ -11,6 +66,7 @@ export function TopBar({ onAboutOpen }: TopBarProps) {
         <span className={styles.brandName}>Healthy Rivers and Landscapes Restoration Dashboard</span>
       </div>
       <nav className={styles.nav}>
+        <DownloadMenu />
         <button type="button" className={styles.navLink} onClick={onAboutOpen}>
           About
         </button>
