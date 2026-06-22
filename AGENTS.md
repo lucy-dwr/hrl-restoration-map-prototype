@@ -8,9 +8,9 @@ Read `SPEC.md` before writing code. Treat its Decision Log as canonical, and do 
 
 The prototype is substantially built. What exists:
 
-- Full-bleed MapLibre map rendering project polygons from `public/data/projects.geojson`, with project-type colour symbology, hover tooltip, and click-to-inspect selection.
-- Top bar branded as "Healthy Rivers and Landscapes Restoration Dashboard" with an About popup.
-- Filter-aware headline tiles strip (project count, total submitted acreage, early-implementation count).
+- Full-bleed MapLibre map rendering project polygons from `public/data/hrl_restoration_projects.geojson`, with project-type colour symbology, hover tooltip, and click-to-inspect selection.
+- Top bar branded as "Healthy Rivers and Landscapes Restoration Dashboard" with a Download data menu and About popup.
+- Filter-aware headline tiles strip (project count and total submitted acreage).
 - Right-side detail panel with type badges, description, overview, acreage breakdown, target species, funding sources, and zoom-to-project action.
 - Left-rail panel with Layers and Projects tabs. The Layers tab has basemap radio controls, per-type visibility checkboxes, Sacramento, Mokelumne, and Tuolumne watershed toggles, Delta legal-boundary and Yolo/Sutter bypass-boundary toggles, and a stream-network toggle. The Projects tab has search, system and early-implementation filters, an accessible project list, project selection/zoom actions, and fit-to-visible-projects.
 - Sacramento watershed boundary layer (`public/data/sacramento-watershed.geojson`) sourced from USGS WBD HUC4 1802.
@@ -23,7 +23,7 @@ The prototype is substantially built. What exists:
 - URL state encoding map centre/zoom, selected project, hidden types, basemap mode, boundary visibility, and stream-network visibility as query parameters.
 - Design tokens in `src/styles/tokens.css`; WCAG-AA-passing colour contrast for all text.
 
-**Not yet built (v1 requirements):** Full methodology page, download data affordance. A concise About popup and the project-list non-map equivalent exist, but still need broader keyboard/screen-reader audit coverage before calling accessibility complete.
+**Not yet built (v1 requirements):** Full methodology page. A concise About popup, the project-list non-map equivalent, and the download data affordance exist, but still need broader keyboard/screen-reader audit coverage before calling accessibility complete.
 
 ## Repository Layout
 
@@ -36,7 +36,9 @@ hrl-restoration-map-prototype/
 │   └── source/                # Local prototype source data, including GeoPackage files
 ├── public/
 │   └── data/
-│       ├── projects.geojson   # Generated from GeoPackage via scripts/convert-gpkg.py
+│       ├── hrl_restoration_projects.geojson  # Generated from GeoPackage via scripts/convert-gpkg.py
+│       ├── hrl_restoration_projects.gpkg  # Generated public GeoPackage download via scripts/convert-gpkg.py
+│       ├── hrl_restoration_projects.csv  # Generated public non-spatial CSV download via scripts/convert-gpkg.py
 │       ├── sacramento-watershed.geojson  # Fetched from USGS WBD via scripts/fetch-watershed.py
 │       ├── mokelumne-watershed.geojson  # Fetched from USGS WBD via scripts/fetch-watershed.py
 │       ├── tuolumne-watershed.geojson  # Fetched from USGS WBD via scripts/fetch-watershed.py
@@ -60,7 +62,7 @@ hrl-restoration-map-prototype/
 │   └── styles/                # global.css, tokens.css
 ├── tests/                     # (not yet populated)
 └── scripts/
-    ├── convert-gpkg.py        # Converts source GeoPackage to public/data/projects.geojson
+    ├── convert-gpkg.py        # Converts source GeoPackage to public/data/hrl_restoration_projects.*
     ├── fetch-watershed.py     # Fetches Sacramento HUC4 plus Mokelumne and Tuolumne HUC8 boundaries from USGS WBD
     ├── fetch-delta-boundary.py # Fetches Sacramento-San Joaquin Delta legal boundary from DWR
     ├── fetch-bypass-boundaries.py # Fetches Yolo and Sutter bypass boundaries from DWR
@@ -94,7 +96,7 @@ The current schema contract is the vendored LinkML schema in `schemas/hrl/linkml
 Use this workflow until the production data infrastructure exists:
 
 1. Put the source GeoPackage under `data/source/`.
-2. Run `python scripts/convert-gpkg.py` to convert the relevant layer into `public/data/projects.geojson`. Normalise and validate fields against `RestorationProjectSubmission` during conversion.
+2. Run `python scripts/convert-gpkg.py` to convert the relevant layer into `public/data/hrl_restoration_projects.geojson`, `public/data/hrl_restoration_projects.gpkg`, and `public/data/hrl_restoration_projects.csv`. Normalise and validate fields against `RestorationProjectSubmission` during conversion.
 3. Run `python scripts/fetch-watershed.py` to fetch and simplify the Sacramento HUC4, Mokelumne HUC8, and Tuolumne HUC8 watershed boundaries from the USGS WBD REST service and write them to `public/data/sacramento-watershed.geojson`, `public/data/mokelumne-watershed.geojson`, and `public/data/tuolumne-watershed.geojson`.
 4. Run `python scripts/fetch-delta-boundary.py` to fetch and simplify the Sacramento-San Joaquin Delta legal boundary from the DWR ArcGIS service and write it to `public/data/delta-boundary.geojson`.
 5. Run `python scripts/fetch-bypass-boundaries.py` to fetch and simplify the representational Yolo and Sutter bypass boundaries from the DWR `i12_Flood_Bypasses_2014` ArcGIS service and write them to `public/data/yolo-bypass-boundary.geojson` and `public/data/sutter-bypass-boundary.geojson`.

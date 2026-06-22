@@ -7,9 +7,7 @@ export interface ProjectProperties {
   early_implementation: boolean
   construction_start_year: number
   construction_completion_year: number
-  construction_completion_year_comments: string | null
   estimated_budget: number | null
-  estimated_budget_comments: string | null
   funding_sources: string[] | null
   system: string
   project_type: string[]
@@ -22,7 +20,4 @@ export interface ProjectProperties {
   acreage_tidal_wetland: number | null
   target_species: string[]
   display_id: string
-  display_name: string
-  display_acreage: number | null
-  display_stage: string
 }

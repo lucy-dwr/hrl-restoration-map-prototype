@@ -45,10 +45,10 @@ export function App() {
   const [aboutOpen, setAboutOpen] = useState(false)
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}data/projects.geojson`)
+    fetch(`${import.meta.env.BASE_URL}data/hrl_restoration_projects.geojson`)
       .then(r => r.json() as Promise<FeatureCollection>)
       .then(d => setData(d))
-      .catch(err => console.error('Failed to load projects.geojson', err))
+      .catch(err => console.error('Failed to load hrl_restoration_projects.geojson', err))
   }, [])
 
   // Restore selected project from URL after data loads
@@ -176,8 +176,7 @@ export function App() {
       if (!query) return true
 
       return (
-        project.display_name.toLowerCase().includes(query)
-        || project.project_name.toLowerCase().includes(query)
+        project.project_name.toLowerCase().includes(query)
         || project.lead_entity.toLowerCase().includes(query)
         || project.system.toLowerCase().includes(query)
         || listIncludes(project.project_type, query)

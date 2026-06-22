@@ -73,7 +73,7 @@ Design implication: the dashboard must be visually polished enough for the publi
 | URL-encoded state | ✅ |
 | Concise About popup | ✅ |
 | Full methodology page | ❌ pending |
-| Download data affordance | ❌ pending |
+| Download data affordance | ✅ prototype |
 
 ### 3.2 v1 production target
 
@@ -134,7 +134,7 @@ Every piece of content must be assigned to a tier. If a piece of content cannot 
 ## 5. Layout system
 
 - **Full-bleed map.** The map fills the viewport. Chrome sits on top of it as floating panels.
-- **Top bar.** Thin (≈48px). Dashboard identity left and "About" action right. No primary navigation lives here.
+- **Top bar.** Thin (≈48px). Dashboard identity left; "Download data" and "About" actions right. No primary navigation lives here.
 - **Left rail.** ≈360px, collapsible. Layer toggles, filters, legend. Default-open on desktop, default-collapsed on mobile.
 - **Bottom tile strip.** Headline progress tiles (prototype total acreage where available is the hero; supporting tiles for project count and early-implementation count). Confirmed position: bottom-centre of the map area (Decision 22). Avoids conflict with the left layer panel and bottom-right navigation controls.
 - **Right detail panel.** ≈400px, opens on selection, closes on dismiss. Renders project detail (tier 3). Pushes the map left rather than overlaying it on desktop; overlays on mobile.
@@ -293,13 +293,10 @@ acreage_tidal_wetland: decimal
 
 Submission fields with `list<...>` values may arrive in the GeoPackage as semicolon-delimited strings and should be normalized into arrays during conversion to GeoJSON.
 
-Frontend-only derived fields may be added to generated GeoJSON when useful, but they must be clearly derived from submission data. Useful prototype derivations include:
+Frontend-only derived fields may be added to generated GeoJSON when useful, but they must be clearly derived from submission data. The current prototype keeps derived fields minimal:
 
 ```yaml
 display_id: string                 # stable local slug or generated feature id for URL state
-display_name: string               # usually project_name
-display_acreage: decimal | null    # acreage when present, otherwise null
-display_stage: string              # concise label derived from project_stage
 ```
 
 Do not require `project_id`, `update_date`, canonical funding-gap calculations, or other `RestorationProjectCanonicalRecord` fields until the validation/ingestion pipeline exists.
@@ -314,9 +311,9 @@ Recommended map use:
 - **Filters:** Start with `project_type`, `project_stage`, `system`, `target_species`, `early_implementation`, and construction year ranges.
 - **Headline metrics:** Use `acreage` as the prototype total acreage metric where present. Habitat-specific acreage fields can support secondary metrics or breakdowns.
 - **Hover tooltip:** Keep to `project_name`, primary `project_type`, `system`, and `acreage` if available.
-- **Detail panel:** Include `project_name`, `project_description`, `lead_entity`, `project_stage`, `project_type`, `target_species`, `system`, construction years, acreage fields, funding sources if appropriate, and comments fields where they help interpretation.
+- **Detail panel:** Include `project_name`, `project_description`, `lead_entity`, `project_stage`, `project_type`, `target_species`, `system`, construction years, acreage fields, and funding sources if appropriate.
 - **Non-map interface:** Include the same searchable/filterable project records and detail fields needed to complete all essential map workflows.
-- **Accessible downloads:** Provide the generated GeoJSON and, when appropriate, a tabular CSV export of non-geometry fields.
+- **Accessible downloads:** Provide public project downloads as GeoJSON, GeoPackage, and a tabular CSV export of non-geometry fields.
 
 Fields that should not be publicly displayed in the prototype without explicit approval:
 
@@ -324,6 +321,9 @@ Fields that should not be publicly displayed in the prototype without explicit a
 - `contact_email`
 - `funding_secured`
 - `funding_gap`
+- `estimated_budget_comments`
+- `construction_completion_year_comments`
+- source submission metadata such as `source_slug`, `source_agency`, `submission_version`, `source_file`, and `source_feature_number`
 
 The schema comments explicitly mark `funding_secured` and `funding_gap` as not publicly displayed. Contact fields are operational submission metadata and should be treated as internal unless a public-contact policy is decided.
 
@@ -349,7 +349,9 @@ The current machine-readable data contract is the vendored LinkML schema at `sch
 Recommended prototype path:
 
 1. Store the source GeoPackage under `data/source/`.
-2. Convert it into `public/data/projects.geojson`.
+2. Convert it into `public/data/hrl_restoration_projects.geojson`,
+   `public/data/hrl_restoration_projects.gpkg`, and
+   `public/data/hrl_restoration_projects.csv`.
 3. Normalize and validate project properties against `RestorationProjectSubmission` during conversion.
 4. Generate small context boundaries as GeoJSON under `public/data/`.
 5. Generate large context layers, such as the stream network, as PMTiles under `public/data/`.
@@ -422,7 +424,7 @@ The exact contract between the two repos lives in a `data-contract.md` sub-spec,
 - **Accessibility target:** This product will be designed to exceed minimum compliance and manifest disability access as a core public-service requirement. The application must conform to WCAG 2.2 Level AA and should meet selected WCAG 2.2 Level AAA criteria where applicable, especially for contrast, readability, instructions, help, and cognitive accessibility.
 - **Interface accessibility:** All custom interface components must use native HTML controls where possible or follow WAI-ARIA Authoring Practices. All interactive elements must be keyboard-reachable and screen-reader-labeled.
 - **Non-map equivalent:** Because the product is an interactive mapping application, all essential map content and workflows must also be available through an equivalent keyboard-accessible, screen-reader-readable, non-map interface, including searchable/filterable project lists, project detail views, summary statistics, and accessible data downloads.
-- **Prototype non-map equivalent status:** The current prototype includes a searchable/filterable Projects tab, list-driven selection, fit-to-visible-projects, and zoom-to-project actions. Accessible data downloads and a fuller assistive-technology audit remain pending.
+- **Prototype non-map equivalent status:** The current prototype includes a searchable/filterable Projects tab, list-driven selection, fit-to-visible-projects, zoom-to-project actions, and public data downloads. A fuller assistive-technology audit remains pending.
 - **No visual-only essentials:** No essential information may be conveyed only through color, hover, spatial position, pointer interaction, animation, or visual interpretation of the map.
 - **Performance budgets (initial):**
   - Time-to-interactive on a recent laptop on broadband: <3s.

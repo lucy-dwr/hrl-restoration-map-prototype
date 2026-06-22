@@ -43,7 +43,9 @@ repeatable prototype workflow instead:
 
 1. Put source GeoPackage files under `data/source/`.
 2. Run `python scripts/convert-gpkg.py` to generate
-   `public/data/projects.geojson`.
+   `public/data/hrl_restoration_projects.geojson`,
+   `public/data/hrl_restoration_projects.gpkg`, and
+   `public/data/hrl_restoration_projects.csv`.
 3. Run `python scripts/fetch-watershed.py` to generate
    `public/data/sacramento-watershed.geojson`,
    `public/data/mokelumne-watershed.geojson`, and
@@ -73,6 +75,10 @@ render or expose these fields without explicit approval:
 - `contact_email`
 - `funding_secured`
 - `funding_gap`
+- `estimated_budget_comments`
+- `construction_completion_year_comments`
+- source submission metadata such as `source_slug`, `source_agency`,
+  `submission_version`, `source_file`, and `source_feature_number`
 
 Map data must align with the schema provided in `schemas/hrl/linkml/hrl_restoration_project.yaml`.
 

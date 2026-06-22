@@ -60,7 +60,7 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
       </div>
 
       <div className={styles.body}>
-        <h2 className={styles.projectName}>{project.display_name}</h2>
+        <h2 className={styles.projectName}>{project.project_name}</h2>
         <button className={styles.zoomBtn} onClick={onZoomToProject}>
           Zoom to project
         </button>
@@ -117,8 +117,8 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
         <section className={styles.section}>
           <h3 className={styles.sectionLabel}>Acreage</h3>
           <div className={styles.acreageTotal}>
-            {project.display_acreage != null
-              ? <><strong>{fmt(project.display_acreage)}</strong> ac total</>
+            {project.acreage != null
+              ? <><strong>{fmt(project.acreage)}</strong> ac total</>
               : <span className={styles.muted}>Not reported</span>}
           </div>
           {acreageRows.length > 0 && (
@@ -130,12 +130,6 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
                 </>
               ))}
             </dl>
-          )}
-          {project.estimated_budget_comments && (
-            <p className={styles.comment}>{project.estimated_budget_comments}</p>
-          )}
-          {project.construction_completion_year_comments && (
-            <p className={styles.comment}>{project.construction_completion_year_comments}</p>
           )}
         </section>
 

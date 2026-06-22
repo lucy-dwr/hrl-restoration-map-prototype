@@ -13,10 +13,10 @@ export function HeadlineTiles({ data }: Props) {
   const features = data.features
   const total = features.length
   const withAcreage = features.filter(
-    f => (f.properties as ProjectProperties).display_acreage != null
+    f => (f.properties as ProjectProperties).acreage != null
   )
   const totalAcreage = withAcreage.reduce(
-    (sum, f) => sum + ((f.properties as ProjectProperties).display_acreage ?? 0),
+    (sum, f) => sum + ((f.properties as ProjectProperties).acreage ?? 0),
     0
   )
 

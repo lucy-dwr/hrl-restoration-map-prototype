@@ -30,8 +30,8 @@ function DownloadMenu() {
       {open && (
         <div className={styles.downloadMenu} role="menu">
           <a
-            href="data/projects.geojson"
-            download="projects.geojson"
+            href="data/hrl_restoration_projects.geojson"
+            download="hrl_restoration_projects.geojson"
             className={styles.downloadItem}
             role="menuitem"
             onClick={() => setOpen(false)}
@@ -40,8 +40,8 @@ function DownloadMenu() {
             <span className={styles.downloadDesc}>For web mapping and scripting</span>
           </a>
           <a
-            href="data/projects.gpkg"
-            download="projects.gpkg"
+            href="data/hrl_restoration_projects.gpkg"
+            download="hrl_restoration_projects.gpkg"
             className={styles.downloadItem}
             role="menuitem"
             onClick={() => setOpen(false)}
@@ -50,8 +50,8 @@ function DownloadMenu() {
             <span className={styles.downloadDesc}>For QGIS, ArcGIS, and other GIS tools</span>
           </a>
           <a
-            href="data/projects.csv"
-            download="projects.csv"
+            href="data/hrl_restoration_projects.csv"
+            download="hrl_restoration_projects.csv"
             className={styles.downloadItem}
             role="menuitem"
             onClick={() => setOpen(false)}

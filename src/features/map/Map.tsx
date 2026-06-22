@@ -529,9 +529,9 @@ export function Map({
       setTooltip({
         x: e.point.x,
         y: e.point.y,
-        name: String(p['display_name'] ?? p['project_name'] ?? ''),
+        name: String(p['project_name'] ?? ''),
         types: String(p['display_types'] ?? ''),
-        acreage: typeof p['display_acreage'] === 'number' ? p['display_acreage'] : null,
+        acreage: typeof p['acreage'] === 'number' ? p['acreage'] : null,
       })
 
       map.getCanvas().style.cursor = 'pointer'

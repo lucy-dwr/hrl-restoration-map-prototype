@@ -479,11 +479,11 @@ export function LayerPanel({
                           className={styles.projectSelect}
                           onClick={() => onProjectSelect(project.display_id)}
                         >
-                          <span className={styles.projectName}>{project.display_name}</span>
+                          <span className={styles.projectName}>{project.project_name}</span>
                           <span className={styles.projectMeta}>
                             {project.system}
-                            {project.display_acreage != null
-                              ? ` · ${project.display_acreage.toLocaleString()} ac`
+                            {project.acreage != null
+                              ? ` · ${project.acreage.toLocaleString()} ac`
                               : ''}
                           </span>
                           {types.length > 0 && (
@@ -496,7 +496,7 @@ export function LayerPanel({
                           type="button"
                           className={styles.projectZoom}
                           onClick={() => onZoomToProject(project.display_id)}
-                          aria-label={`Zoom to ${project.display_name}`}
+                          aria-label={`Zoom to ${project.project_name}`}
                         >
                           Zoom
                         </button>

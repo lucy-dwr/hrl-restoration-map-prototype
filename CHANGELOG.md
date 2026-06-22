@@ -28,6 +28,8 @@ applicable.
 - Added filter-aware headline metric tiles.
 - Added a concise About popup with Healthy Rivers and Landscapes programme
   context and links to CNRA and HRL source pages.
+- Added a Download data menu with public project downloads as GeoJSON,
+  GeoPackage, and non-spatial CSV.
 
 ### Changed
 
@@ -38,6 +40,10 @@ applicable.
   Dashboard".
 - Updated UI and map styling with a light-touch HRL-inspired accessible palette,
   smoother watershed boundaries, and blue-grey stream-network hydrography.
+- Renamed public project data objects to
+  `public/data/hrl_restoration_projects.*` and trimmed public download fields
+  to exclude private, source-submission, comment, and non-public funding-gap
+  fields.
 
 ## [0.1.0] - 2026-06-03
 
@@ -64,9 +70,9 @@ applicable.
 - Improved DOM order, text contrast, and reduced-motion handling for WCAG 2.2 AA
   alignment.
 
-### Known Gaps
+### Known Gaps at Release Time
 
 - Project list accessibility exists at prototype level but still needs broader
   keyboard and screen-reader audit coverage.
 - Full methodology page is not yet built.
-- Download data affordance is not yet built.
+- Download data affordance was not yet built.
