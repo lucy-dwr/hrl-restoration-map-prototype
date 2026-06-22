@@ -339,9 +339,15 @@ Long answer.
 
 ## Email Prompt
 
-```text
-The prototype map of HRL restoration projects is ready for initial beta testing
-and feedback! Thanks for your help in getting us to this point.
+Dear colleagues,
+
+The prototype HRL restoration map is ready for initial beta testing and feedback!
+Thanks to those of you who helped in getting us to this point through data model
+development and data submissions.
+
+As a reminder, the primary function of this map is simple communication with
+people interested in HRL restoration project locations and basic descriptions.
+The target audience is SWRCB members and members of the general public.
 
 In beta testing, I am looking for task-specific feedback as well as general
 impressions that can guide development: what works, what is confusing, what is
@@ -349,37 +355,35 @@ missing, and what would prevent you from using this map in your work. To
 participate in beta testing, please complete the prescribed tasks in this form
 and share your thoughts:
 
-[form link]
+`LINK`
 
 I estimate that beta testing will take about 15 minutes. The process and feedback
-are guided by the form. The general beta testing flow is:
+are guided by the form. 
 
-1. Open the map and orient yourself. What do you think the map is for?
-2. Navigate to a river corridor, watershed, bypass, or region you know.
-3. Click one project and review whether its details are clear and useful.
-4. Search or filter the project list, select a project, and use one map filter.
-5. Turn at least one context layer or basemap option on or off.
-6. Try to answer one practical question that matters for your work.
-7. Assess whether the map is clear and trustworthy enough for your use.
-8. Provide any additional feedback you wish to that is not captured already in
-   the form.
+The prototype map is here: `LINK`
 
-The prototype map is here: [map link]
+Please provide your feedback by Friday, July 3 (the end of next week). After
+that, we will set up a meeting to gather additional thoughts from those who wish
+to have a discussion about it.
 
 Eventually we hope to host this map on the CNRA webpage, but for the development
 process, it is rendered as a static GitHub Pages site. If you experience an
-agency firewall blocking access to the site, you may need to access it on an open
-network and/or different computer - that is not something I am able to remediate
-on my end, and there is currently no other way for me to serve the site.
+agency firewall blocking access to the site, you will need to access it on an
+open network and/or different computer - that is not something I am able to
+remediate on my end, and there is currently no other way for me to serve the site.
+ 
+Lastly, the map represents the data that were submitted to me; the only
+modifications I made were minor and served to standardize submitted data to the
+governing schema. I will work separately with data submitters to refine the data
+for presentation in the map, now that you are able to see the bigger picture.
+This will include canonicalizing project names, i.e. selecting straightforward,
+authoritative names for projects that will be used in all external-facing
+communication (and ideally internal work too) moving forward for the duration of
+the HRL program.
 
-Lastly, the map represents the data that were submitted. I will work separately
-with data submitters to refine the data for presentation in the map, now that you
-are able to see the bigger picture. This will include canonicalizing project 
-names, i.e. selecting straightforward, authoritative names for projects that will
-be used in all external-facing communication (and ideally internal work too)
-moving forward for the duration of the HRL program.
+Please let me know if you have any questions!
 
-```
+P.S. If you want to see the code that builds the site, it is here: `LINK`
 
 ## Triage Format
 
