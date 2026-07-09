@@ -76,6 +76,11 @@ function CollapsibleSection({
   )
 }
 
+interface ActiveFilterChip {
+  id: string
+  label: string
+}
+
 interface Props {
   basemap: BasemapMode
   onBasemapChange: (mode: BasemapMode) => void
@@ -92,6 +97,8 @@ interface Props {
   onProjectSelect: (displayId: string) => void
   onZoomToProject: (displayId: string) => void
   onFitVisibleProjects: () => void
+  activeFilterChips: ActiveFilterChip[]
+  onResetFilters: () => void
   hiddenTypes: Set<string>
   onToggleType: (type: string) => void
   sacramentoWatershedVisible: boolean
@@ -128,6 +135,8 @@ export function LayerPanel({
   onProjectSelect,
   onZoomToProject,
   onFitVisibleProjects,
+  activeFilterChips,
+  onResetFilters,
   hiddenTypes,
   onToggleType,
   sacramentoWatershedVisible,
@@ -149,6 +158,8 @@ export function LayerPanel({
 }: Props) {
   const [activeTab, setActiveTab] = useState<'layers' | 'projects'>('layers')
   const [collapsedSections, setCollapsedSections] = useState<Set<LayerSectionId>>(() => new Set())
+  const hasActiveFilters = activeFilterChips.length > 0
+  const filtersHideAllProjects = hasActiveFilters && totalProjectCount > 0 && projects.length === 0
 
   function toggleLayerSection(section: LayerSectionId) {
     setCollapsedSections(prev => {
@@ -198,6 +209,25 @@ export function LayerPanel({
               Projects
             </button>
           </div>
+
+          {hasActiveFilters && (
+            <div className={styles.filterSummary} aria-label="Active project filters">
+              <div className={styles.filterChips}>
+                {activeFilterChips.map(filter => (
+                  <span key={filter.id} className={styles.filterChip} title={filter.label}>
+                    {filter.label}
+                  </span>
+                ))}
+              </div>
+              <button
+                type="button"
+                className={styles.resetFiltersButton}
+                onClick={onResetFilters}
+              >
+                Reset filters
+              </button>
+            </div>
+          )}
 
           {activeTab === 'layers' ? (
             <div className={styles.scrollBody}>
@@ -468,7 +498,11 @@ export function LayerPanel({
 
               <div className={styles.projectList} role="list">
                 {projects.length === 0 ? (
-                  <p className={styles.emptyState}>No projects match the current filters.</p>
+                  <p className={styles.emptyState}>
+                    {filtersHideAllProjects
+                      ? 'Filters are hiding all projects. Reset filters to show the full project list.'
+                      : 'No projects are available.'}
+                  </p>
                 ) : (
                   projects.map(project => {
                     const types = Array.isArray(project.project_type) ? project.project_type : []

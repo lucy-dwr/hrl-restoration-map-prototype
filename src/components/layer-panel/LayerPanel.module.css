@@ -59,6 +59,60 @@
   color: var(--text-primary);
 }
 
+.filterSummary {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(247, 248, 244, 0.72);
+}
+
+.filterChips {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.filterChip {
+  max-width: 100%;
+  border: 1px solid rgba(0, 80, 75, 0.18);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.25;
+  padding: 3px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resetFiltersButton {
+  flex-shrink: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.25;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+.resetFiltersButton:hover {
+  background: var(--surface-1);
+  color: var(--accent-hover);
+}
+
+.resetFiltersButton:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
+}
+
 .scrollBody {
   overflow-y: auto;
   min-height: 0;

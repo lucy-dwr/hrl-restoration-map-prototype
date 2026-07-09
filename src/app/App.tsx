@@ -44,6 +44,15 @@ function hasVisibleProjectType(project: ProjectProperties, hiddenTypes: Set<stri
   return assignedTypes(project).some(type => !hiddenTypes.has(type))
 }
 
+function capitalize(s: string): string {
+  return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1)
+}
+
+interface ActiveFilterChip {
+  id: string
+  label: string
+}
+
 export function App() {
   const [data, setData] = useState<FeatureCollection | null>(null)
   const [selectedDisplayId, setSelectedDisplayId] = useState<string | null>(initial.selected)
@@ -225,8 +234,41 @@ export function App() {
     }
   }, [data, filteredDisplayIds])
 
+  const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
+    const chips: ActiveFilterChip[] = []
+    const query = projectSearch.trim()
+
+    if (query) {
+      chips.push({ id: 'search', label: `Search: "${query}"` })
+    }
+
+    if (systemFilter) {
+      chips.push({ id: 'system', label: `System: ${systemFilter}` })
+    }
+
+    if (earlyOnly) {
+      chips.push({ id: 'early', label: 'Early implementation' })
+    }
+
+    const hiddenTypeLabels = [...hiddenTypes].sort()
+    hiddenTypeLabels.forEach(type => {
+      chips.push({ id: `hidden-type-${type}`, label: `Hidden: ${capitalize(type)}` })
+    })
+
+    return chips
+  }, [earlyOnly, hiddenTypes, projectSearch, systemFilter])
+
   const handleFitVisibleProjects = useCallback(() => {
     setFitVisibleRequest(prev => prev + 1)
+  }, [])
+
+  const handleResetProjectFilters = useCallback(() => {
+    const resetHiddenTypes = new Set<string>()
+    setProjectSearch('')
+    setSystemFilter('')
+    setEarlyOnly(false)
+    setHiddenTypes(resetHiddenTypes)
+    writeUrlState({ hiddenTypes: resetHiddenTypes })
   }, [])
 
   const handleZoomToSelectedProject = useCallback(() => {
@@ -347,6 +389,8 @@ export function App() {
           onProjectSelect={handleProjectSelectFromList}
           onZoomToProject={handleProjectSelectFromList}
           onFitVisibleProjects={handleFitVisibleProjects}
+          activeFilterChips={activeFilterChips}
+          onResetFilters={handleResetProjectFilters}
           hiddenTypes={hiddenTypes}
           onToggleType={handleToggleType}
           sacramentoWatershedVisible={sacramentoWatershedVisible}
