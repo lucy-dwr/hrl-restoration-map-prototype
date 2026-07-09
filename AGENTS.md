@@ -9,7 +9,8 @@ Read `SPEC.md` before writing code. Treat its Decision Log as canonical, and do 
 The prototype is substantially built. What exists:
 
 - Full-bleed MapLibre map rendering project polygons from `public/data/hrl_restoration_projects.geojson`, with project-type colour symbology, hover tooltip, and click-to-inspect selection.
-- Top bar branded as "Healthy Rivers and Landscapes Restoration Dashboard" with a Download data menu and About popup.
+- Top bar branded as "Healthy Rivers and Landscapes Restoration Dashboard" with compact purpose text, a Download data menu, and About popup.
+- First-run orientation overlay that frames the map as a public overview of early implementation and proposed restoration project locations, not verified habitat accounting.
 - Filter-aware headline tiles strip (project count and total submitted acreage).
 - Right-side detail panel with type badges, description, overview, acreage breakdown, target species, funding sources, and zoom-to-project action.
 - Left-rail panel with Layers and Projects tabs. The Layers tab has basemap radio controls, per-type visibility checkboxes, Sacramento, Mokelumne, and Tuolumne watershed toggles, Delta legal-boundary and Yolo/Sutter bypass-boundary toggles, and a stream-network toggle. The Projects tab has search, system and early-implementation filters, an accessible project list, project selection/zoom actions, and fit-to-visible-projects.

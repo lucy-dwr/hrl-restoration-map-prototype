@@ -33,6 +33,85 @@
   box-shadow: var(--shadow-lg);
 }
 
+.orientationDialog {
+  width: min(560px, 100%);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 22px;
+}
+
+.orientationEyebrow {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.orientationTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+}
+
+.orientationText {
+  margin: 12px 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: 1.55;
+}
+
+.orientationActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.orientationPrimary,
+.orientationSecondary {
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.orientationPrimary {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--surface-0);
+}
+
+.orientationPrimary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.orientationSecondary {
+  border: 1px solid var(--border-default);
+  background: var(--surface-0);
+  color: var(--text-secondary);
+}
+
+.orientationSecondary:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+.orientationPrimary:focus-visible,
+.orientationSecondary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 .aboutHeader {
   display: flex;
   align-items: center;

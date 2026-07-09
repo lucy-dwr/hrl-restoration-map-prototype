@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FeatureCollection } from 'geojson'
 import { Map } from '../features/map/Map'
 import { TopBar } from '../components/top-bar/TopBar'
@@ -11,6 +11,23 @@ import { readUrlState, writeUrlState } from '../lib/url-state'
 import styles from './App.module.css'
 
 const initial = readUrlState()
+const ORIENTATION_DISMISSED_KEY = 'hrl-dashboard-first-run-orientation-dismissed'
+
+function shouldShowFirstRunOrientation(): boolean {
+  try {
+    return window.localStorage.getItem(ORIENTATION_DISMISSED_KEY) !== '1'
+  } catch {
+    return true
+  }
+}
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter(element => !element.hasAttribute('aria-hidden'))
+}
 
 function listIncludes(values: string[] | null | undefined, query: string): boolean {
   if (!Array.isArray(values)) return false
@@ -43,6 +60,10 @@ export function App() {
   const [fitVisibleRequest, setFitVisibleRequest] = useState(0)
   const [layerPanelOpen, setLayerPanelOpen] = useState(true)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [orientationOpen, setOrientationOpen] = useState(shouldShowFirstRunOrientation)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+  const orientationPrimaryRef = useRef<HTMLButtonElement>(null)
+  const aboutCloseRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/hrl_restoration_projects.geojson`)
@@ -209,22 +230,78 @@ export function App() {
     setProjectFocusRequest({ displayId: selectedDisplayId, seq: Date.now() })
   }, [selectedDisplayId])
 
-  useEffect(() => {
-    if (!aboutOpen) return
+  const handleAboutOpen = useCallback(() => {
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null
+    setAboutOpen(true)
+  }, [])
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setAboutOpen(false)
+  const handleAboutClose = useCallback(() => {
+    setAboutOpen(false)
+    previousFocusRef.current?.focus()
+    previousFocusRef.current = null
+  }, [])
+
+  const handleOrientationDismiss = useCallback((persist: boolean) => {
+    if (persist) {
+      try {
+        window.localStorage.setItem(ORIENTATION_DISMISSED_KEY, '1')
+      } catch {
+        // If storage is unavailable, dismiss for this session.
+      }
+    }
+    setOrientationOpen(false)
+  }, [])
+
+  const handleModalKeyDown = useCallback((
+    event: React.KeyboardEvent<HTMLElement>,
+    onEscape: () => void
+  ) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      onEscape()
+      return
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    if (event.key !== 'Tab') return
+
+    const focusableElements = getFocusableElements(event.currentTarget)
+    if (focusableElements.length === 0) {
+      event.preventDefault()
+      return
+    }
+
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+    const activeElement = document.activeElement
+
+    if (event.shiftKey && activeElement === firstElement) {
+      event.preventDefault()
+      lastElement.focus()
+    } else if (!event.shiftKey && activeElement === lastElement) {
+      event.preventDefault()
+      firstElement.focus()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (orientationOpen && !aboutOpen) orientationPrimaryRef.current?.focus()
+  }, [aboutOpen, orientationOpen])
+
+  useEffect(() => {
+    if (aboutOpen) aboutCloseRef.current?.focus()
   }, [aboutOpen])
+
+  useEffect(() => {
+    if (!aboutOpen && orientationOpen) previousFocusRef.current = null
+  }, [aboutOpen, orientationOpen])
 
   const panelOpen = selectedProject !== null
 
   return (
     <div className={styles.shell}>
-      <TopBar onAboutOpen={() => setAboutOpen(true)} />
+      <TopBar onAboutOpen={handleAboutOpen} />
       <div
         className={styles.mapWrapper}
         style={{ right: panelOpen ? 'var(--detail-panel-width)' : '0px' }}
@@ -293,39 +370,90 @@ export function App() {
           onZoomToProject={handleZoomToSelectedProject}
         />
       )}
+      {orientationOpen && !aboutOpen && (
+        <div className={styles.modalBackdrop} role="presentation">
+          <section
+            className={styles.orientationDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="orientation-title"
+            aria-describedby="orientation-description"
+            onKeyDown={event => handleModalKeyDown(event, () => handleOrientationDismiss(false))}
+          >
+            <p className={styles.orientationEyebrow}>First time here?</p>
+            <h2 id="orientation-title" className={styles.orientationTitle}>
+              This is a public overview of HRL restoration project locations.
+            </h2>
+            <p id="orientation-description" className={styles.orientationText}>
+              The prototype map shows early implementation and proposed Healthy Rivers
+              and Landscapes restoration projects, basic descriptions, project types,
+              and total project acres where available. It is meant for public, regulator,
+              and partner-agency orientation, not verified habitat accounting.
+            </p>
+            <div className={styles.orientationActions}>
+              <button
+                ref={orientationPrimaryRef}
+                type="button"
+                className={styles.orientationPrimary}
+                onClick={() => handleOrientationDismiss(true)}
+              >
+                Explore the map
+              </button>
+              <button
+                type="button"
+                className={styles.orientationSecondary}
+                onClick={() => {
+                  handleOrientationDismiss(true)
+                  previousFocusRef.current = null
+                  setAboutOpen(true)
+                }}
+              >
+                Read about this map
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {aboutOpen && (
         <div
           className={styles.modalBackdrop}
           role="presentation"
-          onMouseDown={() => setAboutOpen(false)}
+          onMouseDown={handleAboutClose}
         >
           <section
             className={styles.aboutDialog}
             role="dialog"
             aria-modal="true"
             aria-labelledby="about-title"
+            onKeyDown={event => handleModalKeyDown(event, handleAboutClose)}
             onMouseDown={event => event.stopPropagation()}
           >
             <header className={styles.aboutHeader}>
               <h2 id="about-title" className={styles.aboutTitle}>About This Dashboard</h2>
               <button
                 type="button"
+                ref={aboutCloseRef}
                 className={styles.aboutClose}
                 aria-label="Close About dialog"
-                onClick={() => setAboutOpen(false)}
+                onClick={handleAboutClose}
               >
                 ×
               </button>
             </header>
             <div className={styles.aboutBody}>
               <p>
-                This map shows habitat restoration projects in the Healthy Rivers
-                and Landscapes Program.
+                This prototype map shows early implementation and proposed habitat
+                restoration projects in the Healthy Rivers and Landscapes Program.
               </p>
               <p>
                 Healthy Rivers and Landscapes is a watershed-wide approach to improve
                 river flows, expand habitat, and support native fish and wildlife in
                 the Sacramento and San Joaquin Rivers and the Bay-Delta.
+              </p>
+              <p>
+                The dashboard is intended as a public, regulator, and partner-agency
+                overview of project locations and basic project information. It is not
+                a verified habitat-accounting tool.
               </p>
               <p>
                 This map is currently a prototype and all content is draft.

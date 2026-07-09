@@ -72,6 +72,7 @@ Design implication: the dashboard must be visually polished enough for the publi
 | Fit-to-visible-projects and zoom-to-project map actions | ✅ |
 | URL-encoded state | ✅ |
 | Concise About popup | ✅ |
+| First-run orientation overlay with persistent top-bar purpose text | ✅ |
 | Full methodology page | ❌ pending |
 | Download data affordance | ✅ prototype |
 
@@ -414,7 +415,8 @@ The exact contract between the two repos lives in a `data-contract.md` sub-spec,
 ## 12. First-run experience
 
 - The dashboard loads with the project-locations layer visible, headline tiles populated, and the map zoomed to a default extent that frames the Sacramento River watershed and Bay-Delta.
-- A first-visit overlay (dismissable, remembered via local storage) gives a one-paragraph orientation and points to the layer rail, the tiles, and the About link.
+- The prototype implements a first-visit overlay, dismissable and remembered via local storage, that frames the dashboard as a public overview of early implementation and proposed Healthy Rivers and Landscapes restoration project locations. The overlay states that the dashboard shows basic descriptions, project types, and total project acres where available, and that it is not a verified habitat-accounting tool.
+- The top bar carries persistent compact purpose text: "Explore early implementation and proposed restoration project locations and basic descriptions." The About control is labeled "About this map" for discoverability.
 - No tour or guided walkthrough in v1 (defer to near-future).
 
 ---
@@ -534,3 +536,4 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 37 | 2026-06-22 | Structured beta testing is documented in `beta-testing/README.md` and collected through an external form shared by email, not through an in-app feedback button or frontend persistence. | The first review round needs actionable, task-based feedback without adding backend scope or cluttering the map UI. Keeping the process in-repo makes the review protocol versioned alongside development. |
 | 38 | 2026-07-08 | Prototype acreage UI labels use "submitted habitat acreage" rather than generic "acres." | The vendored submission schema defines `acreage` as total project acreage restored as habitat and says each acre should be counted once; habitat-specific acreage fields are submitted values anticipated to be verified through the HRL accounting process, not verified canonical accounting outcomes. |
 | 39 | 2026-07-08 | Prototype acreage UI labels use "total project acres" for compact display, superseding Decision 38's "submitted habitat acreage" wording. | "Total project acres" aligns more closely with the schema title "Total project acreage" while avoiding dense or overly technical labels in the map tiles, tooltips, project list, and detail panel. Short helper text carries the counted-once caveat where space allows. |
+| 40 | 2026-07-09 | Prototype first-run and About copy describe the mapped records as "early implementation and proposed" restoration projects and explicitly frame the dashboard as a public, regulator, and partner-agency overview, not verified habitat accounting. | Round 1 reviewers showed mixed purpose clarity and some read the dashboard as an internal tracking or accounting tool. The chosen wording improves first-load orientation while avoiding unapproved Bay-Delta Update / Plan of Implementation policy language. |

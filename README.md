@@ -24,7 +24,11 @@ The prototype includes:
   `public/data/hrl_restoration_projects.geojson`
 - Project-type color symbology, hover tooltip, and click-to-inspect selection
 - Top bar branded as the Healthy Rivers and Landscapes Restoration Dashboard,
-  headline metric tiles, and right-side project detail panel
+  compact purpose text, headline metric tiles, and right-side project detail
+  panel
+- First-run orientation overlay that frames the map as a public overview of
+  early implementation and proposed restoration project locations, not verified
+  habitat accounting
 - Concise About popup with program context and links to CNRA and HRL sources
 - Left-rail controls with separate Layers and Projects tabs
 - Searchable/filterable project list with project selection, zoom-to-project,

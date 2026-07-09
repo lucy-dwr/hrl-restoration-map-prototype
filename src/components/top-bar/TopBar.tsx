@@ -74,11 +74,14 @@ export function TopBar({ onAboutOpen }: TopBarProps) {
     <header className={styles.bar}>
       <div className={styles.brand}>
         <span className={styles.brandName}>Healthy Rivers and Landscapes Restoration Dashboard</span>
+        <span className={styles.brandPurpose}>
+          Explore early implementation and proposed restoration project locations and basic descriptions.
+        </span>
       </div>
       <nav className={styles.nav}>
         <DownloadMenu />
-        <button type="button" className={styles.navLink} onClick={onAboutOpen}>
-          About
+        <button type="button" className={styles.aboutLink} onClick={onAboutOpen}>
+          About this map
         </button>
       </nav>
     </header>
