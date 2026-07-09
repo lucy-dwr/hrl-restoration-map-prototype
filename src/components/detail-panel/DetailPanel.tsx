@@ -27,6 +27,10 @@ function capitalize(s: string): string {
   return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1)
 }
 
+function formatList(values: string[]): string {
+  return values.map(capitalize).join(', ')
+}
+
 export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
   const types = Array.isArray(project.project_type) ? project.project_type : []
   const stages = Array.isArray(project.project_stage) ? project.project_stage : []
@@ -83,12 +87,6 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
 
         <div className={styles.metaRow}>
           <span className={styles.metaItem}>{project.system}</span>
-          {stages.length > 0 && (
-            <>
-              <span className={styles.metaDot}>·</span>
-              <span className={styles.metaItem}>{capitalize(stages[0])}</span>
-            </>
-          )}
         </div>
 
         {project.project_description && (
@@ -103,7 +101,13 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
           <dl className={styles.dl}>
             <dt>Lead entity</dt>
             <dd>{project.lead_entity}</dd>
-            <dt>Construction</dt>
+            {stages.length > 0 && (
+              <>
+                <dt>Current project stage</dt>
+                <dd>{formatList(stages)}</dd>
+              </>
+            )}
+            <dt>Anticipated construction years</dt>
             <dd>{constructionRange}</dd>
             {project.estimated_budget != null && (
               <>

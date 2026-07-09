@@ -312,7 +312,7 @@ Recommended map use:
 - **Filters:** Start with `project_type`, `project_stage`, `system`, `target_species`, `early_implementation`, and construction year ranges.
 - **Headline metrics:** Use `acreage` as the prototype total acreage metric where present. Habitat-specific acreage fields can support secondary metrics or breakdowns.
 - **Hover tooltip:** Keep to `project_name`, primary `project_type`, `system`, and `acreage` if available.
-- **Detail panel:** Include `project_name`, `project_description`, `lead_entity`, `project_stage`, `project_type`, `target_species`, `system`, construction years, acreage fields, and funding sources if appropriate.
+- **Detail panel:** Include `project_name`, `project_description`, `lead_entity`, `project_stage` labeled as "Current project stage," `project_type`, `target_species`, `system`, anticipated construction years, acreage fields, and funding sources if appropriate. Preserve and display all submitted current-stage values where more than one is present.
 - **Non-map interface:** Include the same searchable/filterable project records and detail fields needed to complete all essential map workflows.
 - **Accessible downloads:** Provide public project downloads as GeoJSON, GeoPackage, and a tabular CSV export of non-geometry fields.
 
@@ -480,7 +480,7 @@ Each of these can become a standalone spec file when the project needs more deta
 These do not block v1 scaffolding but must be resolved before v1 ship.
 
 - **Formal visual identity.** The prototype uses a light-touch HRL-inspired palette, but production still needs a decision on logo use and any formal multi-agency brand requirements.
-- **Project-stage display.** How should multivalued `ProjectStageEnum` values be summarized for symbology, filters, and headline tiles?
+- **Project-stage display beyond details.** The detail panel displays all `ProjectStageEnum` values as current project stage. How should multivalued stage values be summarized for symbology, filters, and headline tiles?
 - **Data refresh cadence.** Proposed: nightly. Confirm with `hrl-data-infrastructure` plans.
 - **Hosting domain.** Subdomain of an existing DWR or HRL domain, or a new domain? Affects DNS, SSL, and link strategy from partner sites.
 - **Photo / media policy.** Project records may include photos at some point (process and management to be determined). What is the rights and consent process for displaying them publicly?
@@ -537,3 +537,4 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 38 | 2026-07-08 | Prototype acreage UI labels use "submitted habitat acreage" rather than generic "acres." | The vendored submission schema defines `acreage` as total project acreage restored as habitat and says each acre should be counted once; habitat-specific acreage fields are submitted values anticipated to be verified through the HRL accounting process, not verified canonical accounting outcomes. |
 | 39 | 2026-07-08 | Prototype acreage UI labels use "total project acres" for compact display, superseding Decision 38's "submitted habitat acreage" wording. | "Total project acres" aligns more closely with the schema title "Total project acreage" while avoiding dense or overly technical labels in the map tiles, tooltips, project list, and detail panel. Short helper text carries the counted-once caveat where space allows. |
 | 40 | 2026-07-09 | Prototype first-run and About copy describe the mapped records as "early implementation and proposed" restoration projects and explicitly frame the dashboard as a public, regulator, and partner-agency overview, not verified habitat accounting. | Round 1 reviewers showed mixed purpose clarity and some read the dashboard as an internal tracking or accounting tool. The chosen wording improves first-load orientation while avoiding unapproved Bay-Delta Update / Plan of Implementation policy language. |
+| 41 | 2026-07-09 | Prototype detail-panel UI labels `project_stage` as "Current project stage" and displays all reported stage values. | The field is intended to represent current project stage. Showing all values avoids hiding multivalued records without adding a derived summary status or extra explanatory chrome to the detail pane. |

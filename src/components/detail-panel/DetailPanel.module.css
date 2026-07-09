@@ -114,11 +114,6 @@
   color: var(--text-tertiary);
 }
 
-.metaDot {
-  color: var(--text-tertiary);
-  font-size: var(--text-sm);
-}
-
 .section {
   margin-bottom: 20px;
 }
