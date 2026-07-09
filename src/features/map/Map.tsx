@@ -76,14 +76,16 @@ const PROJECT_POINT_LAYERS = ['projects-point-path', 'projects-point-marker']
 const PROJECT_FILTERED_LAYERS = [...PROJECT_AREA_LAYERS, ...PROJECT_POINT_LAYERS]
 const PROJECT_INTERACTIVE_LAYERS = ['projects-fill', 'projects-point-path', 'projects-point-marker']
 const PROJECT_SELECTED_LAYERS = [
+  'projects-selected-outer-halo',
   'projects-selected-halo',
-  'projects-selected-outline',
-  'projects-selected-point-path-fill',
+  'projects-selected-point-path-backing',
   'projects-selected-point-path-halo',
-  'projects-selected-point-path',
   'projects-selected-point-halo',
   'projects-selected-point',
 ]
+
+const SELECTED_PROJECT_CONTRAST_COLOR = '#102f34'
+const SELECTED_PROJECT_HALO_COLOR = '#ffffff'
 
 const TRIBUTARY_WATERSHED_COLOR_EXPR = [
   'match',
@@ -991,29 +993,37 @@ export function Map({
     })
 
     map.addLayer({
+      id: 'projects-selected-outer-halo',
+      type: 'line',
+      source: 'projects',
+      filter: layerSelectionFilter('projects-selected-outer-halo', null),
+      paint: {
+        'line-color': SELECTED_PROJECT_CONTRAST_COLOR,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 4.4, 10, 5.6, 14, 6.8],
+        'line-opacity': 0.86,
+      },
+    })
+    map.addLayer({
       id: 'projects-selected-halo',
       type: 'line',
       source: 'projects',
       filter: layerSelectionFilter('projects-selected-halo', null),
-      paint: { 'line-color': '#ffffff', 'line-width': 5, 'line-opacity': 0.95 },
+      paint: {
+        'line-color': SELECTED_PROJECT_HALO_COLOR,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 2.4, 10, 3.2, 14, 4],
+        'line-opacity': 0.98,
+      },
     })
     map.addLayer({
-      id: 'projects-selected-outline',
-      type: 'line',
-      source: 'projects',
-      filter: layerSelectionFilter('projects-selected-outline', null),
-      paint: { 'line-color': TYPE_MATCH_EXPR, 'line-width': 2.5, 'line-opacity': 1 },
-    })
-    map.addLayer({
-      id: 'projects-selected-point-path-fill',
+      id: 'projects-selected-point-path-backing',
       type: 'line',
       source: 'project-point-paths',
-      filter: layerSelectionFilter('projects-selected-point-path-fill', null),
+      filter: layerSelectionFilter('projects-selected-point-path-backing', null),
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': TYPE_MATCH_EXPR,
-        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 18, 14, 34],
-        'line-opacity': 0.36,
+        'line-color': SELECTED_PROJECT_CONTRAST_COLOR,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 17, 14, 30],
+        'line-opacity': 0.7,
       },
     })
     map.addLayer({
@@ -1023,21 +1033,9 @@ export function Map({
       filter: layerSelectionFilter('projects-selected-point-path-halo', null),
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': '#ffffff',
-        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 4.6, 10, 8.5, 14, 13],
-        'line-opacity': 0.72,
-      },
-    })
-    map.addLayer({
-      id: 'projects-selected-point-path',
-      type: 'line',
-      source: 'project-point-paths',
-      filter: layerSelectionFilter('projects-selected-point-path', null),
-      layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: {
-        'line-color': TYPE_MATCH_EXPR,
-        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1.4, 10, 2.2, 14, 3],
-        'line-opacity': 0.9,
+        'line-color': SELECTED_PROJECT_HALO_COLOR,
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 5.4, 10, 8.8, 14, 12.5],
+        'line-opacity': 0.96,
       },
     })
     map.addLayer({
@@ -1046,9 +1044,9 @@ export function Map({
       source: 'project-point-markers',
       filter: layerSelectionFilter('projects-selected-point-halo', null),
       paint: {
-        'circle-color': '#ffffff',
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 10, 14, 12],
-        'circle-opacity': 0.92,
+        'circle-color': SELECTED_PROJECT_CONTRAST_COLOR,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 8.8, 10, 11.2, 14, 13.5],
+        'circle-opacity': 0.84,
       },
     })
     map.addLayer({
@@ -1057,12 +1055,12 @@ export function Map({
       source: 'project-point-markers',
       filter: layerSelectionFilter('projects-selected-point', null),
       paint: {
-        'circle-color': TYPE_MATCH_EXPR,
-        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 4.8, 10, 6.6, 14, 8.5],
+        'circle-color': SELECTED_PROJECT_HALO_COLOR,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 4.8, 10, 6.6, 14, 8.6],
         'circle-opacity': 0.98,
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 1.6,
-        'circle-stroke-opacity': 0.96,
+        'circle-stroke-color': SELECTED_PROJECT_CONTRAST_COLOR,
+        'circle-stroke-width': 1.4,
+        'circle-stroke-opacity': 1,
       },
     })
   }, [data, mapLoaded])
