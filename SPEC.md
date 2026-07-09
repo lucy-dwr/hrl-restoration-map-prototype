@@ -43,6 +43,8 @@ Three audiences, in priority order of design weight:
 
 Design implication: the dashboard must be visually polished enough for the public, technically credible enough for the regulator, and accurate enough for the partner agencies — in that order of what is hardest to get right.
 
+Public-facing interface copy should use plain language written for an 8th-grade reading audience. Technical terms are acceptable when they are necessary for accuracy, but surrounding text should be short, concrete, and easy to scan.
+
 ---
 
 ## 3. Scope
@@ -308,7 +310,7 @@ Recommended map use:
 
 - **Geometry:** Render project footprints or locations from the GeoPackage geometry column. Accept polygon, multipolygon, point, and multipoint inputs.
 - **Primary labels:** Use `project_name`.
-- **Symbology:** Use `project_type`. Because `project_type` is multivalued, choose a documented primary type for color/symbol assignment and expose all types in details and filters.
+- **Symbology:** Use `project_type`. Because `project_type` is multivalued, derive a primary type for color/symbol assignment from the reported habitat-specific acreage fields: use the listed project type with the largest reported acreage, fall back to the first listed type when none of the listed types has type-specific acreage, and use fish passage or fish screen types as primary only when no listed acreage-bearing habitat type is available. Expose all types in details and filters.
 - **Filters:** Start with `project_type`, `project_stage`, `system`, `target_species`, `early_implementation`, and construction year ranges.
 - **Headline metrics:** Use `acreage` as the prototype total acreage metric where present. Habitat-specific acreage fields can support secondary metrics or breakdowns.
 - **Hover tooltip:** Keep to `project_name`, primary `project_type`, `system`, and `acreage` if available.
@@ -538,3 +540,4 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 39 | 2026-07-08 | Prototype acreage UI labels use "total project acres" for compact display, superseding Decision 38's "submitted habitat acreage" wording. | "Total project acres" aligns more closely with the schema title "Total project acreage" while avoiding dense or overly technical labels in the map tiles, tooltips, project list, and detail panel. Short helper text carries the counted-once caveat where space allows. |
 | 40 | 2026-07-09 | Prototype first-run and About copy describe the mapped records as "early implementation and proposed" restoration projects and explicitly frame the dashboard as a public, regulator, and partner-agency overview, not verified habitat accounting. | Round 1 reviewers showed mixed purpose clarity and some read the dashboard as an internal tracking or accounting tool. The chosen wording improves first-load orientation while avoiding unapproved Bay-Delta Update / Plan of Implementation policy language. |
 | 41 | 2026-07-09 | Prototype detail-panel UI labels `project_stage` as "Current project stage" and displays all reported stage values. | The field is intended to represent current project stage. Showing all values avoids hiding multivalued records without adding a derived summary status or extra explanatory chrome to the detail pane. |
+| 42 | 2026-07-09 | Prototype project fill color uses a derived primary project type based on the largest reported habitat-specific acreage among listed project types, falling back to the first listed type when no listed type has type-specific acreage. | Multivalued `project_type` records need one color, but list order alone is not a defensible primary-type rule. Fish passage and fish screen types have no habitat-specific acreage fields and should only drive primary color when no listed acreage-bearing habitat type is available. Filters and detail displays still use all submitted project types. |

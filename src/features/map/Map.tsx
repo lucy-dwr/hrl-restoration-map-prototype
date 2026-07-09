@@ -86,6 +86,10 @@ const PROJECT_SELECTED_LAYERS = [
 ]
 
 const AREA_GEOMETRY_FILTER = ['==', ['geometry-type'], 'Polygon'] as unknown as maplibregl.FilterSpecification
+const NON_ACREAGE_PRIMARY_TYPES = new Set([
+  'fish passage improvement',
+  'fish screen installation or improvement',
+])
 
 interface HoveredMapFeature {
   source: string
@@ -319,6 +323,48 @@ function parseList(value: unknown): string[] {
   return []
 }
 
+function acreageForProjectType(project: ProjectProperties, type: string): number | null {
+  switch (type) {
+    case 'bypass floodplain habitat':
+      return project.acreage_bypass_floodplain
+    case 'fish food production':
+      return project.acreage_fish_food
+    case 'rearing habitat':
+      return project.acreage_tributary_rearing
+    case 'spawning habitat':
+      return project.acreage_tributary_spawning
+    case 'tidal habitat':
+      return project.acreage_tidal_wetland
+    case 'tributary floodplain habitat':
+      return project.acreage_tributary_floodplain
+    default:
+      return null
+  }
+}
+
+function fallbackPrimaryType(types: string[]): string {
+  if (types.length === 0) return 'other'
+  if (types.length === 1) return types[0]
+
+  return types.find(type => !NON_ACREAGE_PRIMARY_TYPES.has(type)) ?? types[0]
+}
+
+function primaryType(project: ProjectProperties, types: string[]): string {
+  let primary: string | null = null
+  let primaryAcreage = Number.NEGATIVE_INFINITY
+
+  for (const type of types) {
+    const acreage = acreageForProjectType(project, type)
+    if (acreage == null) continue
+    if (acreage > primaryAcreage) {
+      primary = type
+      primaryAcreage = acreage
+    }
+  }
+
+  return primary ?? fallbackPrimaryType(types)
+}
+
 function addPrimaryType(raw: FeatureCollection): FeatureCollection {
   return {
     ...raw,
@@ -329,7 +375,7 @@ function addPrimaryType(raw: FeatureCollection): FeatureCollection {
         ...f,
         properties: {
           ...f.properties,
-          primary_type: types[0] ?? 'other',
+          primary_type: primaryType(p, types),
           display_types: types.length > 0 ? types.join(', ') : 'unknown',
         },
       }

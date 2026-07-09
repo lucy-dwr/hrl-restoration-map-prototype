@@ -237,6 +237,9 @@ export function LayerPanel({
                 expanded={isLayerSectionExpanded('projectTypes')}
                 onToggle={toggleLayerSection}
               >
+                <p className={styles.sectionNote}>
+                  Colors show each project's main habitat type. A project may include other habitat types too.
+                </p>
                 {ALL_TYPES.map(type => {
                   const visible = !hiddenTypes.has(type)
                   const color = PROJECT_TYPE_COLORS[type] ?? FALLBACK_COLOR

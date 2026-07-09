@@ -34,10 +34,14 @@ function listIncludes(values: string[] | null | undefined, query: string): boole
   return values.some(value => value.toLowerCase().includes(query))
 }
 
-function primaryType(project: ProjectProperties): string {
+function assignedTypes(project: ProjectProperties): string[] {
   return Array.isArray(project.project_type) && project.project_type.length > 0
-    ? project.project_type[0]
-    : 'other'
+    ? project.project_type
+    : ['other']
+}
+
+function hasVisibleProjectType(project: ProjectProperties, hiddenTypes: Set<string>): boolean {
+  return assignedTypes(project).some(type => !hiddenTypes.has(type))
 }
 
 export function App() {
@@ -191,7 +195,7 @@ export function App() {
   const filteredProjects = useMemo(() => {
     const query = projectSearch.trim().toLowerCase()
     return projects.filter(project => {
-      if (hiddenTypes.has(primaryType(project))) return false
+      if (!hasVisibleProjectType(project, hiddenTypes)) return false
       if (systemFilter && project.system !== systemFilter) return false
       if (earlyOnly && !project.early_implementation) return false
       if (!query) return true
