@@ -75,7 +75,7 @@ Public-facing interface copy should use plain language written for an 8th-grade 
 | URL-encoded state | ✅ |
 | Concise About popup | ✅ |
 | First-run orientation overlay with persistent top-bar purpose text | ✅ |
-| Full methodology page | ❌ pending |
+| Methodology and data-source context | ✅ |
 | Download data affordance | ✅ prototype |
 
 ### 3.2 v1 production target
@@ -97,7 +97,7 @@ Public-facing interface copy should use plain language written for an 8th-grade 
 - Layer toggling for project types and (at minimum) one administrative boundary layer.
 - URL-encoded state (center, zoom, active layers, selected project, time range if applicable).
 - "Download data" affordances linking back to canonical datasets in the HRL data infrastructure.
-- Concise "About this dashboard" popup, plus fuller methodology content before production launch.
+- Concise "About this dashboard" popup, plus fuller methodology and data-source context before production launch.
 - Accessibility: WCAG 2.2 Level AA conformance, with selected WCAG 2.2 Level AAA criteria where applicable.
 - Static deploy to Azure Blob.
 
@@ -419,6 +419,7 @@ The exact contract between the two repos lives in a `data-contract.md` sub-spec,
 - The dashboard loads with the project-locations layer visible, headline tiles populated, and the map zoomed to a default extent that frames the Sacramento River watershed and Bay-Delta.
 - The prototype implements a first-visit overlay, dismissable and remembered via local storage, that frames the dashboard as a public overview of early implementation and proposed Healthy Rivers and Landscapes restoration project locations. The overlay states that the dashboard shows basic descriptions, project types, and total project acres where available, and that it is not a verified habitat-accounting tool.
 - The top bar carries persistent compact purpose text: "Explore early implementation and proposed restoration project locations and basic descriptions." The About control is labeled "About this map" for discoverability.
+- The top bar includes a Methodology control. The methodology surface describes the whole-dataset provenance story: project information was submitted by HRL participating entities, checked against the HRL restoration project schema, last updated June 19, 2026, and published as dashboard data/downloads without exposing project-level source fields.
 - No tour or guided walkthrough in v1 (defer to near-future).
 
 ---
@@ -532,7 +533,8 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 31 | 2026-06-19 | Prototype includes optional Yolo and Sutter bypass boundary context layers from the DWR `i12_Flood_Bypasses_2014` service, written to `public/data/yolo-bypass-boundary.geojson` and `public/data/sutter-bypass-boundary.geojson`. | These flood bypasses are highly relevant HRL floodplain context. The DWR layer is purpose-built for flood-bypass map display, but is representational rather than legal, so the layers default hidden and are labeled as context boundaries. |
 | 32 | 2026-06-19 | Prototype watershed context replaces the San Joaquin HUC4 1804 boundary with Mokelumne HUC8 18040012 and Tuolumne HUC8 18040009 boundaries from USGS WBD, while retaining Sacramento HUC4 1802. | The finer HUC8 units provide more useful project-area context than the broad San Joaquin HUC4 outline. USGS WBD is still the authoritative source, and the new layers remain reproducible through `scripts/fetch-watershed.py`. Supersedes Decision 24 for the San Joaquin boundary layer. |
 | 33 | 2026-06-19 | Watershed boundaries are simplified with Ramer-Douglas-Peucker ε = 0.0007° and written with 5-decimal coordinate precision. | The earlier ε = 0.002° / 4-decimal output made the HUC outlines visibly jagged against the terrain basemap. The smaller tolerance preserves smoother watershed shape while keeping the three GeoJSON context files browser-feasible. Supersedes the simplification tolerance recorded in Decision 21. |
-| 34 | 2026-06-19 | The prototype top bar uses the full name "Healthy Rivers and Landscapes Restoration Dashboard" and exposes a concise About popup instead of a separate About page. | The full name is clearer for public and regulator audiences than the HRL abbreviation alone. A compact modal provides immediate program and data-context orientation without pulling users out of the map; a fuller methodology page remains a production requirement. |
+| 34 | 2026-06-19 | The prototype top bar uses the full name "Healthy Rivers and Landscapes Restoration Dashboard" and exposes a concise About popup instead of a separate About page. | The full name is clearer for public and regulator audiences than the HRL abbreviation alone. A compact modal provides immediate program and data-context orientation without pulling users out of the map; a fuller methodology surface remains a production requirement. |
+| 35 | 2026-07-09 | The dashboard exposes dataset-level methodology and provenance context rather than project-level source fields. | The current approved public provenance story is that HRL participating entities submitted the project data, the dataset was checked against the HRL restoration project schema, and the last dataset update shown is June 19, 2026. Project-level source fields are not displayed; questions route to HealthyRiversandLandscapes@resources.ca.gov. |
 | 35 | 2026-06-19 | Prototype visual styling uses a light-touch palette inspired by the public HRL site, with deep teal as the primary UI accent and blue-grey hydrography for the stream network. | The palette gives the dashboard HRL identity without overpowering project symbology. Blue-grey stream styling keeps hydrography legible as contextual base information and avoids visual competition with watershed outlines and project colours. |
 | 36 | 2026-06-22 | Public project data outputs use `public/data/hrl_restoration_projects.*` filenames and are exposed through a top-bar Download data menu as GeoJSON, GeoPackage, and CSV. | Descriptive filenames are clearer than generic `projects.*` downloads, and providing GIS plus non-spatial formats makes prototype review and data QA easier without requiring production data infrastructure. |
 | 37 | 2026-06-22 | Structured beta testing is documented in `beta-testing/README.md` and collected through an external form shared by email, not through an in-app feedback button or frontend persistence. | The first review round needs actionable, task-based feedback without adding backend scope or cluttering the map UI. Keeping the process in-repo makes the review protocol versioned alongside development. |

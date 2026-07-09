@@ -12,6 +12,8 @@ import styles from './App.module.css'
 
 const initial = readUrlState()
 const ORIENTATION_DISMISSED_KEY = 'hrl-dashboard-first-run-orientation-dismissed'
+const DATA_LAST_UPDATED = 'June 19, 2026'
+const PUBLIC_CONTACT_EMAIL = 'HealthyRiversandLandscapes@resources.ca.gov'
 
 function shouldShowFirstRunOrientation(): boolean {
   try {
@@ -73,10 +75,12 @@ export function App() {
   const [fitVisibleRequest, setFitVisibleRequest] = useState(0)
   const [layerPanelOpen, setLayerPanelOpen] = useState(true)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [methodologyOpen, setMethodologyOpen] = useState(false)
   const [orientationOpen, setOrientationOpen] = useState(shouldShowFirstRunOrientation)
   const previousFocusRef = useRef<HTMLElement | null>(null)
   const orientationPrimaryRef = useRef<HTMLButtonElement>(null)
   const aboutCloseRef = useRef<HTMLButtonElement>(null)
+  const methodologyCloseRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}data/hrl_restoration_projects.geojson`)
@@ -289,6 +293,19 @@ export function App() {
     previousFocusRef.current = null
   }, [])
 
+  const handleMethodologyOpen = useCallback(() => {
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null
+    setMethodologyOpen(true)
+  }, [])
+
+  const handleMethodologyClose = useCallback(() => {
+    setMethodologyOpen(false)
+    previousFocusRef.current?.focus()
+    previousFocusRef.current = null
+  }, [])
+
   const handleOrientationDismiss = useCallback((persist: boolean) => {
     if (persist) {
       try {
@@ -332,22 +349,26 @@ export function App() {
   }, [])
 
   useEffect(() => {
-    if (orientationOpen && !aboutOpen) orientationPrimaryRef.current?.focus()
-  }, [aboutOpen, orientationOpen])
+    if (orientationOpen && !aboutOpen && !methodologyOpen) orientationPrimaryRef.current?.focus()
+  }, [aboutOpen, methodologyOpen, orientationOpen])
 
   useEffect(() => {
     if (aboutOpen) aboutCloseRef.current?.focus()
   }, [aboutOpen])
 
   useEffect(() => {
-    if (!aboutOpen && orientationOpen) previousFocusRef.current = null
-  }, [aboutOpen, orientationOpen])
+    if (methodologyOpen) methodologyCloseRef.current?.focus()
+  }, [methodologyOpen])
+
+  useEffect(() => {
+    if (!aboutOpen && !methodologyOpen && orientationOpen) previousFocusRef.current = null
+  }, [aboutOpen, methodologyOpen, orientationOpen])
 
   const panelOpen = selectedProject !== null
 
   return (
     <div className={styles.shell}>
-      <TopBar onAboutOpen={handleAboutOpen} />
+      <TopBar onAboutOpen={handleAboutOpen} onMethodologyOpen={handleMethodologyOpen} />
       <div
         className={styles.mapWrapper}
         style={{ right: panelOpen ? 'var(--detail-panel-width)' : '0px' }}
@@ -418,7 +439,7 @@ export function App() {
           onZoomToProject={handleZoomToSelectedProject}
         />
       )}
-      {orientationOpen && !aboutOpen && (
+      {orientationOpen && !aboutOpen && !methodologyOpen && (
         <div className={styles.modalBackdrop} role="presentation">
           <section
             className={styles.orientationDialog}
@@ -433,10 +454,10 @@ export function App() {
               This is a public overview of HRL restoration project locations.
             </h2>
             <p id="orientation-description" className={styles.orientationText}>
-              The prototype map shows early implementation and proposed Healthy Rivers
-              and Landscapes restoration projects, basic descriptions, project types,
-              and total project acres where available. It is meant for public, regulator,
-              and partner-agency orientation, not verified habitat accounting.
+              The map shows early implementation and proposed Healthy Rivers and
+              Landscapes restoration projects, basic descriptions, project types, and
+              submitted project acres where available. It is meant for public,
+              regulator, and partner-agency orientation, not verified habitat accounting.
             </p>
             <div className={styles.orientationActions}>
               <button
@@ -490,8 +511,8 @@ export function App() {
             </header>
             <div className={styles.aboutBody}>
               <p>
-                This prototype map shows early implementation and proposed habitat
-                restoration projects in the Healthy Rivers and Landscapes Program.
+                This map shows early implementation and proposed habitat restoration
+                projects in the Healthy Rivers and Landscapes Program.
               </p>
               <p>
                 Healthy Rivers and Landscapes is a watershed-wide approach to improve
@@ -504,9 +525,21 @@ export function App() {
                 a verified habitat-accounting tool.
               </p>
               <p>
-                This map is currently a prototype and all content is draft.
+                Project information was submitted by HRL participating entities and
+                checked against the HRL restoration project schema. The last dataset
+                update shown here was {DATA_LAST_UPDATED}.
               </p>
               <div className={styles.aboutLinks}>
+                <button
+                  type="button"
+                  className={styles.aboutInlineButton}
+                  onClick={() => {
+                    setAboutOpen(false)
+                    setMethodologyOpen(true)
+                  }}
+                >
+                  Read methodology
+                </button>
                 <a
                   href="https://resources.ca.gov/Initiatives/Voluntary-Agreements-Page"
                   target="_blank"
@@ -514,7 +547,165 @@ export function App() {
                 >
                   CNRA program page
                 </a>
+                <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>
+                  Contact HRL
+                </a>
               </div>
+            </div>
+          </section>
+        </div>
+      )}
+      {methodologyOpen && (
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onMouseDown={handleMethodologyClose}
+        >
+          <section
+            className={styles.methodologyDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="methodology-title"
+            onKeyDown={event => handleModalKeyDown(event, handleMethodologyClose)}
+            onMouseDown={event => event.stopPropagation()}
+          >
+            <header className={styles.aboutHeader}>
+              <div>
+                <h2 id="methodology-title" className={styles.aboutTitle}>Methodology and Data Sources</h2>
+              </div>
+              <button
+                type="button"
+                ref={methodologyCloseRef}
+                className={styles.aboutClose}
+                aria-label="Close methodology dialog"
+                onClick={handleMethodologyClose}
+              >
+                ×
+              </button>
+            </header>
+            <div className={styles.methodologyBody}>
+              <section>
+                <h3>What this dashboard shows</h3>
+                <p>
+                  The Healthy Rivers and Landscapes Restoration Dashboard shows
+                  locations and basic descriptions for early implementation and
+                  proposed HRL restoration projects. It is designed as a public
+                  overview for program partners, regulators, and interested members of
+                  the public.
+                </p>
+                <p>
+                  The dashboard is not a verified habitat-accounting tool, a regulatory
+                  determination, or a substitute for project-specific planning,
+                  permitting, or monitoring documents.
+                </p>
+              </section>
+              <section>
+                <h3>Data source</h3>
+                <p>
+                  Project information was submitted by HRL participating entities. The
+                  dataset includes project names, locations, descriptions, lead
+                  entities, river systems, project types, project stages, target 
+                  species, funding sources, construction timing, and acreage values.
+                </p>
+                <p>
+                  The last dataset update shown in this dashboard was {DATA_LAST_UPDATED}.
+                </p>
+              </section>
+              <section>
+                <h3>Review and standardization</h3>
+                <p>
+                  Submitted project data were checked against the HRL restoration
+                  project schema, which defines required fields, allowed values, and
+                  field types. During processing, multivalue fields were normalized
+                  and browser-readable files were generated for the dashboard.
+                </p>
+                <p>
+                  This validation confirms that submitted records follow the expected
+                  data structure. It does not independently verify every project fact,
+                  acreage estimate, construction date, budget value, or other
+                  reported information.
+                </p>
+              </section>
+              <section>
+                <h3>How to interpret values</h3>
+                <dl className={styles.methodologyTerms}>
+                  <div>
+                    <dt>Project acres</dt>
+                    <dd>
+                      These are acres reported for the project by HRL participating
+                      entities. They are useful for a high-level map summary. They
+                      are not final HRL habitat-accounting acres.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Project type</dt>
+                    <dd>
+                      Project type describes the main kind of restoration work. A
+                      project can have more than one type; the map uses one main type
+                      for color.
+                      <span className={styles.termListLabel}>Possible values:</span>
+                      <ul>
+                        <li>Bypass floodplain habitat</li>
+                        <li>Fish food production</li>
+                        <li>Fish passage improvement</li>
+                        <li>Fish screen installation or improvement</li>
+                        <li>Rearing habitat</li>
+                        <li>Spawning habitat</li>
+                        <li>Tidal habitat</li>
+                        <li>Tributary floodplain habitat</li>
+                        <li>Other</li>
+                      </ul>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Project stage</dt>
+                    <dd>
+                      Project stage shows where the project is in planning,
+                      construction, or follow-up work. A project can have more than
+                      one stage.
+                      <span className={styles.termListLabel}>Possible values:</span>
+                      <ul>
+                        <li>Concept/feasibility</li>
+                        <li>CEQA</li>
+                        <li>Permitting</li>
+                        <li>Design</li>
+                        <li>Construction</li>
+                        <li>Post-construction monitoring and science</li>
+                      </ul>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Target species</dt>
+                    <dd>
+                      Target species are the species the project is meant to support,
+                      as submitted by HRL participating entities. They are not a
+                      finding that the project has already helped those species.
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+              <section>
+                <h3>Context layers</h3>
+                <p>
+                  Watershed boundaries are generated from the USGS Watershed Boundary
+                  Dataset. Delta and bypass context layers are generated from
+                  California Department of Water Resources spatial services. The stream
+                  network is generated from USGS NHDPlus V2 and displayed as vector tiles.
+                  These layers provide geographic context.
+                </p>
+              </section>
+              <section>
+                <h3>Downloads and contact</h3>
+                <p>
+                  The Download data menu provides the public project dataset as
+                  GeoJSON, GeoPackage, and a non-spatial CSV. The files are generated
+                  from the same standardized project dataset used by the dashboard.
+                </p>
+                <p>
+                  Questions about the dashboard or the public project dataset can be
+                  sent to <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
+                </p>
+              </section>
             </div>
           </section>
         </div>

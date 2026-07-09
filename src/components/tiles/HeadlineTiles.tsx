@@ -23,17 +23,22 @@ export function HeadlineTiles({ data }: Props) {
 
   return (
     <div className={styles.strip}>
-      <div className={styles.tile}>
-        <span className={styles.value}>{total}</span>
-        <span className={styles.label}>projects</span>
+      <div className={styles.metrics}>
+        <div className={styles.tile}>
+          <span className={styles.value}>{total}</span>
+          <span className={styles.label}>projects</span>
+        </div>
+        <div className={styles.divider} />
+        <div className={styles.tile}>
+          <span className={styles.value}>
+            {withAcreage.length > 0 ? formatAcreage(totalAcreage) : '—'}
+          </span>
+          <span className={styles.label}>{ACREAGE_TILE_LABEL}</span>
+        </div>
       </div>
-      <div className={styles.divider} />
-      <div className={styles.tile}>
-        <span className={styles.value}>
-          {withAcreage.length > 0 ? formatAcreage(totalAcreage) : '—'}
-        </span>
-        <span className={styles.label}>{ACREAGE_TILE_LABEL}</span>
-      </div>
+      <p className={styles.note}>
+        Filters change these totals. Acres are submitted by HRL entities, not confirmed habitat-accounting acres.
+      </p>
     </div>
   )
 }

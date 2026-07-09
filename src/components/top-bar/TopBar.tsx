@@ -67,9 +67,10 @@ function DownloadMenu() {
 
 interface TopBarProps {
   onAboutOpen: () => void
+  onMethodologyOpen: () => void
 }
 
-export function TopBar({ onAboutOpen }: TopBarProps) {
+export function TopBar({ onAboutOpen, onMethodologyOpen }: TopBarProps) {
   return (
     <header className={styles.bar}>
       <div className={styles.brand}>
@@ -80,6 +81,9 @@ export function TopBar({ onAboutOpen }: TopBarProps) {
       </div>
       <nav className={styles.nav}>
         <DownloadMenu />
+        <button type="button" className={styles.navLink} onClick={onMethodologyOpen}>
+          Methodology
+        </button>
         <button type="button" className={styles.aboutLink} onClick={onAboutOpen}>
           About this map
         </button>

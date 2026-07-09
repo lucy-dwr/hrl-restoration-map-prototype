@@ -24,7 +24,7 @@ The prototype is substantially built. What exists:
 - URL state encoding map centre/zoom, selected project, hidden types, basemap mode, boundary visibility, and stream-network visibility as query parameters.
 - Design tokens in `src/styles/tokens.css`; WCAG-AA-passing colour contrast for all text.
 
-**Not yet built (v1 requirements):** Full methodology page. A concise About popup, the project-list non-map equivalent, and the download data affordance exist, but still need broader keyboard/screen-reader audit coverage before calling accessibility complete.
+**Still needs v1 hardening:** The methodology/data-source context, concise About popup, project-list non-map equivalent, and download data affordance exist, but still need broader keyboard/screen-reader audit coverage before calling accessibility complete.
 
 ## Repository Layout
 

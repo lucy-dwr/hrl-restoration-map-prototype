@@ -1,7 +1,7 @@
 # hrl-restoration-map-prototype
 
-Prototype interactive map for visualizing Healthy Rivers and Landscapes
-restoration projects.
+Interactive map for visualizing Healthy Rivers and Landscapes restoration
+projects.
 
 > [!WARNING]
 > **Development prototype**
@@ -18,7 +18,7 @@ This repository is currently a local prototype. Azure hosting, published
 snapshot manifests, and the production HRL data-serving infrastructure are not
 set up yet.
 
-The prototype includes:
+The dashboard currently includes:
 
 - Full-bleed MapLibre map with project polygons from
   `public/data/hrl_restoration_projects.geojson`
@@ -30,6 +30,8 @@ The prototype includes:
   early implementation and proposed restoration project locations, not verified
   habitat accounting
 - Concise About popup with program context and links to CNRA and HRL sources
+- Methodology and data-source context describing project submissions, schema
+  validation, update timing, public downloads, and contact information
 - Left-rail controls with separate Layers and Projects tabs
 - Searchable/filterable project list with project selection, zoom-to-project,
   and fit-to-visible-projects actions
@@ -51,10 +53,6 @@ The prototype includes:
 - Download data menu for public project data as GeoJSON, GeoPackage, and
   non-spatial CSV
 
-Not yet included:
-
-- Full methodology page
-
 ## Quick Start
 
 This project uses React, Vite, TypeScript, MapLibre GL JS, and pnpm.
@@ -64,7 +62,7 @@ pnpm install
 pnpm run dev
 ```
 
-Build the prototype with:
+Build the app with:
 
 ```sh
 pnpm run build
@@ -73,7 +71,7 @@ pnpm run build
 ## Data Workflow
 
 The browser app does not load source GeoPackage files directly. Use the
-repeatable prototype workflow:
+repeatable data workflow:
 
 1. Keep source GeoPackage files in `data/source/`.
 2. Validate and normalize data against the vendored LinkML

@@ -28,6 +28,9 @@ applicable.
 - Added filter-aware headline metric tiles.
 - Added a concise About popup with Healthy Rivers and Landscapes program
   context and links to CNRA and HRL source pages.
+- Added methodology and data-source context with dataset-level provenance,
+  June 19, 2026 update language, schema-validation notes, download context, and
+  the public HRL contact email.
 - Added a Download data menu with public project downloads as GeoJSON,
   GeoPackage, and non-spatial CSV.
 - Added a structured beta testing process and external form content in
