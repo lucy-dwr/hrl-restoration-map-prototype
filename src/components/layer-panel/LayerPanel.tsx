@@ -520,9 +520,14 @@ export function LayerPanel({
                           <span className={styles.projectName}>{project.project_name}</span>
                           <span className={styles.projectMeta}>
                             {project.system}
-                            {project.acreage != null
-                              ? ` · ${formatAcreage(project.acreage, 2)} ${ACREAGE_COMPACT_LABEL}`
-                              : ''}
+                            {project.acreage != null && (
+                              <>
+                                {' · '}
+                                <span aria-label={`Total project acres: ${formatAcreage(project.acreage)}`}>
+                                  {formatAcreage(project.acreage)} {ACREAGE_COMPACT_LABEL}
+                                </span>
+                              </>
+                            )}
                           </span>
                           {types.length > 0 && (
                             <span className={styles.projectTypes}>

@@ -165,6 +165,10 @@
   font-size: var(--text-lg);
 }
 
+.acreageBreakdown {
+  margin-top: 12px;
+}
+
 .muted {
   color: var(--text-tertiary);
 }

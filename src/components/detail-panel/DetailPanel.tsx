@@ -122,16 +122,16 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
           <h3 className={styles.sectionLabel}>{ACREAGE_LABEL}</h3>
           <div className={styles.acreageTotal}>
             {project.acreage != null
-              ? <><strong>{formatAcreage(project.acreage)}</strong> total project acres</>
+              ? <><strong>{formatAcreage(project.acreage)}</strong> acres</>
               : <span className={styles.muted}>Not reported</span>}
           </div>
           <p className={styles.comment}>{ACREAGE_DEFINITION}</p>
           {acreageRows.length > 0 && (
-            <dl className={styles.dl}>
+            <dl className={`${styles.dl} ${styles.acreageBreakdown}`}>
               {acreageRows.map(r => (
                 <>
                   <dt key={`${r.label}-dt`}>{r.label}</dt>
-                  <dd key={`${r.label}-dd`}>{formatAcreage(r.value)} ac</dd>
+                  <dd key={`${r.label}-dd`}>{formatAcreage(r.value)} acres</dd>
                 </>
               ))}
             </dl>

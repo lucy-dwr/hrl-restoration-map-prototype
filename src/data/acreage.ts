@@ -1,6 +1,6 @@
 export const ACREAGE_LABEL = 'Total project acres'
 export const ACREAGE_TILE_LABEL = 'total project acres'
-export const ACREAGE_COMPACT_LABEL = 'project ac'
+export const ACREAGE_COMPACT_LABEL = 'acres'
 
 export const ACREAGE_DEFINITION =
   'Total project acreage restored as habitat; each acre is counted once.'
