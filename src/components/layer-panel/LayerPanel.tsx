@@ -19,10 +19,16 @@ const ALL_TYPES = [
 ]
 
 const DISABLED_SWATCH = '#cbd3cc'
+const TRIBUTARY_WATERSHEDS = [
+  { key: 'sacramento', label: 'Sacramento', color: '#8f8798' },
+  { key: 'american', label: 'American', color: '#a77484' },
+  { key: 'feather', label: 'Feather', color: '#9a854e' },
+  { key: 'yuba', label: 'Yuba', color: '#7f8a55' },
+  { key: 'putah', label: 'Putah', color: '#b08362' },
+  { key: 'mokelumne', label: 'Mokelumne', color: '#9087ae' },
+  { key: 'tuolumne', label: 'Tuolumne', color: '#a78355' },
+]
 const CONTEXT_LAYER_COLORS = {
-  sacramentoWatershed: '#4f8f8b',
-  mokelumneWatershed: '#7b8f34',
-  tuolumneWatershed: '#b07812',
   deltaBoundary: '#00504b',
   yoloBypass: '#d6901a',
   sutterBypass: '#8e8934',
@@ -101,12 +107,8 @@ interface Props {
   onResetFilters: () => void
   hiddenTypes: Set<string>
   onToggleType: (type: string) => void
-  sacramentoWatershedVisible: boolean
-  onToggleSacramentoWatershed: () => void
-  mokelumneWatershedVisible: boolean
-  onToggleMokelumneWatershed: () => void
-  tuolumneWatershedVisible: boolean
-  onToggleTuolumneWatershed: () => void
+  visibleTributaries: Set<string>
+  onToggleTributaryWatershed: (systemKey: string) => void
   deltaBoundaryVisible: boolean
   onToggleDeltaBoundary: () => void
   yoloBypassVisible: boolean
@@ -139,12 +141,8 @@ export function LayerPanel({
   onResetFilters,
   hiddenTypes,
   onToggleType,
-  sacramentoWatershedVisible,
-  onToggleSacramentoWatershed,
-  mokelumneWatershedVisible,
-  onToggleMokelumneWatershed,
-  tuolumneWatershedVisible,
-  onToggleTuolumneWatershed,
+  visibleTributaries,
+  onToggleTributaryWatershed,
   deltaBoundaryVisible,
   onToggleDeltaBoundary,
   yoloBypassVisible,
@@ -301,66 +299,33 @@ export function LayerPanel({
                 expanded={isLayerSectionExpanded('boundaries')}
                 onToggle={toggleLayerSection}
               >
-                <label className={styles.row}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={sacramentoWatershedVisible}
-                    onChange={onToggleSacramentoWatershed}
-                  />
-                  <span
-                    className={styles.dot}
-                    style={{
-                      background: sacramentoWatershedVisible
-                        ? CONTEXT_LAYER_COLORS.sacramentoWatershed
-                        : DISABLED_SWATCH,
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span className={styles.typeLabel} style={{ color: sacramentoWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
-                    Sacramento watershed
-                  </span>
-                </label>
-                <label className={styles.row}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={mokelumneWatershedVisible}
-                    onChange={onToggleMokelumneWatershed}
-                  />
-                  <span
-                    className={styles.dot}
-                    style={{
-                      background: mokelumneWatershedVisible
-                        ? CONTEXT_LAYER_COLORS.mokelumneWatershed
-                        : DISABLED_SWATCH,
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span className={styles.typeLabel} style={{ color: mokelumneWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
-                    Mokelumne watershed
-                  </span>
-                </label>
-                <label className={styles.row}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={tuolumneWatershedVisible}
-                    onChange={onToggleTuolumneWatershed}
-                  />
-                  <span
-                    className={styles.dot}
-                    style={{
-                      background: tuolumneWatershedVisible
-                        ? CONTEXT_LAYER_COLORS.tuolumneWatershed
-                        : DISABLED_SWATCH,
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span className={styles.typeLabel} style={{ color: tuolumneWatershedVisible ? undefined : 'var(--text-tertiary)' }}>
-                    Tuolumne watershed
-                  </span>
-                </label>
+                <p className={styles.sectionNote}>
+                  USGS watershed boundaries for HRL tributary systems represented in the dashboard.
+                </p>
+                {TRIBUTARY_WATERSHEDS.map(watershed => {
+                  const visible = visibleTributaries.has(watershed.key)
+                  return (
+                    <label key={watershed.key} className={styles.row}>
+                      <input
+                        type="checkbox"
+                        className={styles.checkbox}
+                        checked={visible}
+                        onChange={() => onToggleTributaryWatershed(watershed.key)}
+                      />
+                      <span
+                        className={styles.dot}
+                        style={{
+                          background: visible ? watershed.color : DISABLED_SWATCH,
+                          borderRadius: 2,
+                        }}
+                      />
+                      <span className={styles.typeLabel} style={{ color: visible ? undefined : 'var(--text-tertiary)' }}>
+                        {watershed.label} watershed
+                      </span>
+                    </label>
+                  )
+                })}
+                <div className={styles.contextGroupGap} />
                 <label className={styles.row}>
                   <input
                     type="checkbox"

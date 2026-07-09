@@ -85,6 +85,33 @@ const PROJECT_SELECTED_LAYERS = [
   'projects-selected-point',
 ]
 
+const TRIBUTARY_WATERSHED_COLOR_EXPR = [
+  'match',
+  ['get', 'system_key'],
+  'sacramento', '#8f8798',
+  'american', '#a77484',
+  'feather', '#9a854e',
+  'yuba', '#7f8a55',
+  'putah', '#b08362',
+  'mokelumne', '#9087ae',
+  'tuolumne', '#a78355',
+  '#8c837b',
+] as unknown as maplibregl.ExpressionSpecification
+
+const TRIBUTARY_WATERSHED_FILL_OPACITY_EXPR = [
+  'match',
+  ['get', 'system_key'],
+  'sacramento', 0.05,
+  0.06,
+] as unknown as maplibregl.ExpressionSpecification
+
+const TRIBUTARY_WATERSHED_LINE_OPACITY_EXPR = [
+  'match',
+  ['get', 'system_key'],
+  'sacramento', 0.68,
+  0.74,
+] as unknown as maplibregl.ExpressionSpecification
+
 const AREA_GEOMETRY_FILTER = ['==', ['geometry-type'], 'Polygon'] as unknown as maplibregl.FilterSpecification
 const NON_ACREAGE_PRIMARY_TYPES = new Set([
   'fish passage improvement',
@@ -288,6 +315,20 @@ function layerVisibilityFilter(
   return ['all', sourceFilter, visibilityFilter] as unknown as maplibregl.FilterSpecification
 }
 
+function tributaryVisibilityFilter(visibleTributaries: Set<string>): maplibregl.FilterSpecification {
+  if (visibleTributaries.size === 0) {
+    return ['==', ['get', 'system_key'], ''] as unknown as maplibregl.FilterSpecification
+  }
+
+  return [
+    'match',
+    ['get', 'system_key'],
+    [...visibleTributaries],
+    true,
+    false,
+  ] as unknown as maplibregl.FilterSpecification
+}
+
 function layerSelectionFilter(
   layerId: string,
   selectedDisplayId: string | null
@@ -483,9 +524,7 @@ interface MapProps {
   projectFocusRequest: { displayId: string; seq: number } | null
   fitVisibleRequest: number
   selectedDisplayId: string | null
-  sacramentoWatershedVisible: boolean
-  mokelumneWatershedVisible: boolean
-  tuolumneWatershedVisible: boolean
+  visibleTributaries: Set<string>
   deltaBoundaryVisible: boolean
   yoloBypassVisible: boolean
   sutterBypassVisible: boolean
@@ -504,9 +543,7 @@ export function Map({
   projectFocusRequest,
   fitVisibleRequest,
   selectedDisplayId,
-  sacramentoWatershedVisible,
-  mokelumneWatershedVisible,
-  tuolumneWatershedVisible,
+  visibleTributaries,
   deltaBoundaryVisible,
   yoloBypassVisible,
   sutterBypassVisible,
@@ -634,60 +671,34 @@ export function Map({
     const map = mapRef.current
     if (map.getSource('projects')) return
 
-    // Sacramento watershed boundary (HUC4 1802, below projects)
-    map.addSource('sacramento-watershed', {
+    // HRL tributary watershed boundaries (USGS WBD, below projects).
+    map.addSource('hrl-tributary-watersheds', {
       type: 'geojson',
-      data: `${import.meta.env.BASE_URL}data/sacramento-watershed.geojson`,
+      data: `${import.meta.env.BASE_URL}data/hrl-tributary-watersheds.geojson`,
     })
     map.addLayer({
-      id: 'sacramento-watershed-fill',
+      id: 'hrl-tributary-watersheds-fill',
       type: 'fill',
-      source: 'sacramento-watershed',
-      paint: { 'fill-color': '#7fb6b2', 'fill-opacity': 0.035 },
+      source: 'hrl-tributary-watersheds',
+      paint: {
+        'fill-color': TRIBUTARY_WATERSHED_COLOR_EXPR,
+        'fill-opacity': TRIBUTARY_WATERSHED_FILL_OPACITY_EXPR,
+      },
     })
     map.addLayer({
-      id: 'sacramento-watershed-outline',
+      id: 'hrl-tributary-watersheds-outline',
       type: 'line',
-      source: 'sacramento-watershed',
-      paint: { 'line-color': '#4f8f8b', 'line-width': 1.6, 'line-opacity': 0.68 },
+      source: 'hrl-tributary-watersheds',
+      paint: {
+        'line-color': TRIBUTARY_WATERSHED_COLOR_EXPR,
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          5, 1.35,
+          11, 1.9,
+        ],
+        'line-opacity': TRIBUTARY_WATERSHED_LINE_OPACITY_EXPR,
+      },
     })
-
-    // Mokelumne watershed boundary (WBD HUC8 18040012, below projects)
-    map.addSource('mokelumne-watershed', {
-      type: 'geojson',
-      data: `${import.meta.env.BASE_URL}data/mokelumne-watershed.geojson`,
-    })
-    map.addLayer({
-      id: 'mokelumne-watershed-fill',
-      type: 'fill',
-      source: 'mokelumne-watershed',
-      paint: { 'fill-color': '#b5ae42', 'fill-opacity': 0.04 },
-    })
-    map.addLayer({
-      id: 'mokelumne-watershed-outline',
-      type: 'line',
-      source: 'mokelumne-watershed',
-      paint: { 'line-color': '#7b8f34', 'line-width': 1.8, 'line-opacity': 0.84 },
-    })
-
-    // Tuolumne watershed boundary (WBD HUC8 18040009, below projects)
-    map.addSource('tuolumne-watershed', {
-      type: 'geojson',
-      data: `${import.meta.env.BASE_URL}data/tuolumne-watershed.geojson`,
-    })
-    map.addLayer({
-      id: 'tuolumne-watershed-fill',
-      type: 'fill',
-      source: 'tuolumne-watershed',
-      paint: { 'fill-color': '#e7a53d', 'fill-opacity': 0.04 },
-    })
-    map.addLayer({
-      id: 'tuolumne-watershed-outline',
-      type: 'line',
-      source: 'tuolumne-watershed',
-      paint: { 'line-color': '#b07812', 'line-width': 1.8, 'line-opacity': 0.84 },
-    })
-
     // Sacramento-San Joaquin Delta legal boundary (DWR i03_LegalDeltaBoundary).
     map.addSource('delta-boundary', {
       type: 'geojson',
@@ -909,7 +920,6 @@ export function Map({
         ],
       },
     })
-
     // Project layers
     const prepared = addPrimaryType(data)
     map.addSource('projects', { type: 'geojson', data: prepared, generateId: true })
@@ -1087,35 +1097,14 @@ export function Map({
     fitFeatureBounds(mapRef.current, features, 11)
   }, [data, fitVisibleRequest, mapLoaded, visibleDisplayIds])
 
-  // Sync Sacramento watershed visibility
+  // Sync HRL tributary watershed visibility
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) return
     const map = mapRef.current
-    if (!map.getLayer('sacramento-watershed-fill')) return
-    const vis = sacramentoWatershedVisible ? 'visible' : 'none'
-    map.setLayoutProperty('sacramento-watershed-fill', 'visibility', vis)
-    map.setLayoutProperty('sacramento-watershed-outline', 'visibility', vis)
-  }, [data, sacramentoWatershedVisible, mapLoaded])
-
-  // Sync Mokelumne watershed visibility
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current) return
-    const map = mapRef.current
-    if (!map.getLayer('mokelumne-watershed-fill')) return
-    const vis = mokelumneWatershedVisible ? 'visible' : 'none'
-    map.setLayoutProperty('mokelumne-watershed-fill', 'visibility', vis)
-    map.setLayoutProperty('mokelumne-watershed-outline', 'visibility', vis)
-  }, [data, mokelumneWatershedVisible, mapLoaded])
-
-  // Sync Tuolumne watershed visibility
-  useEffect(() => {
-    if (!mapLoaded || !mapRef.current) return
-    const map = mapRef.current
-    if (!map.getLayer('tuolumne-watershed-fill')) return
-    const vis = tuolumneWatershedVisible ? 'visible' : 'none'
-    map.setLayoutProperty('tuolumne-watershed-fill', 'visibility', vis)
-    map.setLayoutProperty('tuolumne-watershed-outline', 'visibility', vis)
-  }, [data, tuolumneWatershedVisible, mapLoaded])
+    if (!map.getLayer('hrl-tributary-watersheds-fill')) return
+    map.setFilter('hrl-tributary-watersheds-fill', tributaryVisibilityFilter(visibleTributaries))
+    map.setFilter('hrl-tributary-watersheds-outline', tributaryVisibilityFilter(visibleTributaries))
+  }, [data, visibleTributaries, mapLoaded])
 
   // Sync Delta legal boundary visibility
   useEffect(() => {

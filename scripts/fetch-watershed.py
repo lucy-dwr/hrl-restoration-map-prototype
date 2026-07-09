@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-Fetch Sacramento River (HUC4 1802), Mokelumne (HUC8 18040012), and Tuolumne
-(HUC8 18040009) watershed boundaries from the USGS Watershed Boundary Dataset
-REST service, simplify them, and write browser-readable GeoJSON files to
-public/data/.
+Fetch HRL tributary watershed boundaries from the USGS Watershed Boundary
+Dataset REST service, simplify them, and write a browser-readable combined
+GeoJSON file to public/data/.
 
 Usage:
     python scripts/fetch-watershed.py
@@ -14,7 +13,11 @@ import math
 import pathlib
 import urllib.request
 
+from shapely.geometry import mapping, shape
+from shapely.ops import unary_union
+
 DATA_DIR = pathlib.Path(__file__).parent.parent / "public" / "data"
+OUTPUT = DATA_DIR / "hrl-tributary-watersheds.geojson"
 
 WBD_URL_TEMPLATE = (
     "https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer/{layer}/query"
@@ -24,27 +27,69 @@ WBD_URL_TEMPLATE = (
     "&outSR=4326"
 )
 
-WATERSHEDS = [
+TRIBUTARY_WATERSHEDS = [
     {
         "layer": 2,
         "huc_field": "huc4",
-        "huc": "1802",
-        "label": "Sacramento watershed",
-        "output": DATA_DIR / "sacramento-watershed.geojson",
+        "huc_level": "HUC4",
+        "hucs": ["1802"],
+        "system_key": "sacramento",
+        "system_name": "Sacramento",
+        "label": "Sacramento River watershed",
     },
     {
         "layer": 4,
         "huc_field": "huc8",
-        "huc": "18040012",
-        "label": "Mokelumne watershed",
-        "output": DATA_DIR / "mokelumne-watershed.geojson",
+        "huc_level": "HUC8",
+        "hucs": ["18020111", "18020128", "18020129"],
+        "system_key": "american",
+        "system_name": "American",
+        "label": "American River watershed",
     },
     {
         "layer": 4,
         "huc_field": "huc8",
-        "huc": "18040009",
-        "label": "Tuolumne watershed",
-        "output": DATA_DIR / "tuolumne-watershed.geojson",
+        "huc_level": "HUC8",
+        "hucs": ["18020121", "18020122", "18020123", "18020159"],
+        "system_key": "feather",
+        "system_name": "Feather",
+        "label": "Feather River watershed",
+    },
+    {
+        "layer": 4,
+        "huc_field": "huc8",
+        "huc_level": "HUC8",
+        "hucs": ["18020125"],
+        "system_key": "yuba",
+        "system_name": "Yuba",
+        "label": "Yuba River watershed",
+    },
+    {
+        "layer": 4,
+        "huc_field": "huc8",
+        "huc_level": "HUC8",
+        "hucs": ["18020162"],
+        "system_key": "putah",
+        "system_name": "Putah",
+        "label": "Putah Creek watershed",
+    },
+    {
+        "layer": 4,
+        "huc_field": "huc8",
+        "huc_level": "HUC8",
+        "hucs": ["18040012"],
+        "system_key": "mokelumne",
+        "system_name": "Mokelumne",
+        "label": "Mokelumne River watershed",
+    },
+    {
+        "layer": 4,
+        "huc_field": "huc8",
+        "huc_level": "HUC8",
+        "hucs": ["18040009"],
+        "system_key": "tuolumne",
+        "system_name": "Tuolumne",
+        "label": "Tuolumne River watershed",
     },
 ]
 
@@ -103,36 +148,65 @@ def count_points(geom):
     return sum(len(ring) for polygon in geom["coordinates"] for ring in polygon)
 
 
-def fetch_watershed(config):
-    print(f"Fetching {config['label']} boundary from USGS WBD ...")
-    with urllib.request.urlopen(WBD_URL_TEMPLATE.format(**config)) as resp:
+def fetch_watershed_geometry(config, huc):
+    print(f"Fetching {config['label']} boundary for {config['huc_level']} {huc} ...")
+    query = {**config, "huc": huc}
+    with urllib.request.urlopen(WBD_URL_TEMPLATE.format(**query)) as resp:
         data = json.load(resp)
 
     features = data.get("features", [])
     if not features:
         raise RuntimeError(
             f"No features returned from USGS WBD service for "
-            f"{config['huc_field'].upper()} {config['huc']}."
+            f"{config['huc_field'].upper()} {huc}."
         )
 
     feature = features[0]
-    geom = feature["geometry"]
+    source_props = feature.get("properties", {})
+    return shape(feature["geometry"]), source_props.get("name", "")
+
+
+def build_watershed_feature(config):
+    geometries = []
+    source_names = []
+    for huc in config["hucs"]:
+        geometry, source_name = fetch_watershed_geometry(config, huc)
+        geometries.append(geometry)
+        source_names.append(source_name)
+
+    dissolved = unary_union(geometries)
+    geom = mapping(dissolved)
     simplify_geometry(geom)
-    total_pts = count_points(geom)
 
-    out = {"type": "FeatureCollection", "features": [feature]}
-    output = config["output"]
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with open(output, "w") as f:
-        json.dump(out, f)
-
-    size_kb = output.stat().st_size // 1024
-    print(f"Written {output} -- {total_pts} points, {size_kb} KB")
+    return {
+        "type": "Feature",
+        "geometry": geom,
+        "properties": {
+            "system_key": config["system_key"],
+            "system_name": config["system_name"],
+            "label": config["label"],
+            "source_name": "; ".join(name for name in source_names if name),
+            "huc": "; ".join(config["hucs"]),
+            "huc_level": config["huc_level"],
+            "label_feature": True,
+            "source": "USGS Watershed Boundary Dataset",
+        },
+    }
 
 
 def main():
-    for config in WATERSHEDS:
-        fetch_watershed(config)
+    features = []
+    for config in TRIBUTARY_WATERSHEDS:
+        features.append(build_watershed_feature(config))
+
+    out = {"type": "FeatureCollection", "features": features}
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    with open(OUTPUT, "w") as f:
+        json.dump(out, f)
+
+    total_pts = sum(count_points(feature["geometry"]) for feature in features)
+    size_kb = OUTPUT.stat().st_size // 1024
+    print(f"Written {OUTPUT} -- {len(features)} features, {total_pts} points, {size_kb} KB")
 
 
 if __name__ == "__main__":

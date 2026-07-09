@@ -5,15 +5,23 @@
 //   &basemap=imagery                         (absent = map)
 //   &selected=project-3
 //   &hidden=spawning+habitat,tidal+habitat   (comma-separated type keys)
-//   &sacramento=0                            (absent = visible; "0" = hidden)
-//   &mokelumne=0                             (absent = visible; "0" = hidden)
-//   &tuolumne=0                              (absent = visible; "0" = hidden)
+//   &visibleTributaries=american,putah       (comma-separated visible HRL tributary keys)
 //   &delta=1                                 (absent = hidden; "1" = visible)
 //   &yolobypass=1                            (absent = hidden; "1" = visible)
 //   &sutterbypass=1                          (absent = hidden; "1" = visible)
 //   &streams=0                               (absent = visible; "0" = hidden)
 
 export type BasemapMode = 'map' | 'imagery'
+
+const TRIBUTARY_KEYS = [
+  'sacramento',
+  'american',
+  'feather',
+  'yuba',
+  'putah',
+  'mokelumne',
+  'tuolumne',
+]
 
 export interface UrlState {
   lat: number
@@ -22,9 +30,7 @@ export interface UrlState {
   basemap: BasemapMode
   selected: string | null
   hiddenTypes: Set<string>
-  sacramentoWatershedVisible: boolean
-  mokelumneWatershedVisible: boolean
-  tuolumneWatershedVisible: boolean
+  visibleTributaries: Set<string>
   deltaBoundaryVisible: boolean
   yoloBypassVisible: boolean
   sutterBypassVisible: boolean
@@ -38,9 +44,7 @@ const DEFAULTS: UrlState = {
   basemap: 'map',
   selected: null,
   hiddenTypes: new Set(),
-  sacramentoWatershedVisible: true,
-  mokelumneWatershedVisible: true,
-  tuolumneWatershedVisible: true,
+  visibleTributaries: new Set(),
   deltaBoundaryVisible: false,
   yoloBypassVisible: false,
   sutterBypassVisible: false,
@@ -54,6 +58,24 @@ export function readUrlState(): UrlState {
   const lng = parseFloat(p.get('lng') ?? '')
   const zoom = parseFloat(p.get('zoom') ?? '')
   const hidden = p.get('hidden') ?? ''
+  let visibleTributaries = new Set(
+    (p.get('visibleTributaries') ?? '').split(',').filter(Boolean)
+  )
+
+  // Backward compatibility for shared prototype URLs from older watershed
+  // implementations that defaulted tributary watersheds on.
+  if (p.has('hiddenTributaries')) {
+    const hiddenTributaries = new Set(
+      (p.get('hiddenTributaries') ?? '').split(',').filter(Boolean)
+    )
+    visibleTributaries = new Set(
+      TRIBUTARY_KEYS.filter(key => !hiddenTributaries.has(key))
+    )
+  }
+
+  if (p.get('sacramento') === '0') visibleTributaries.delete('sacramento')
+  if (p.get('mokelumne') === '0') visibleTributaries.delete('mokelumne')
+  if (p.get('tuolumne') === '0') visibleTributaries.delete('tuolumne')
 
   return {
     lat: Number.isFinite(lat) ? lat : DEFAULTS.lat,
@@ -62,9 +84,7 @@ export function readUrlState(): UrlState {
     basemap: p.get('basemap') === 'imagery' ? 'imagery' : DEFAULTS.basemap,
     selected: p.get('selected') ?? null,
     hiddenTypes: new Set(hidden ? hidden.split(',').filter(Boolean) : []),
-    sacramentoWatershedVisible: p.get('sacramento') !== '0',
-    mokelumneWatershedVisible: p.get('mokelumne') !== '0',
-    tuolumneWatershedVisible: p.get('tuolumne') !== '0',
+    visibleTributaries,
     deltaBoundaryVisible: p.get('delta') === '1',
     yoloBypassVisible: p.get('yolobypass') === '1',
     sutterBypassVisible: p.get('sutterbypass') === '1',
@@ -97,19 +117,16 @@ export function writeUrlState(state: Partial<UrlState>): void {
     }
   }
 
-  if (state.sacramentoWatershedVisible !== undefined) {
-    if (state.sacramentoWatershedVisible) p.delete('sacramento')
-    else p.set('sacramento', '0')
-  }
-
-  if (state.mokelumneWatershedVisible !== undefined) {
-    if (state.mokelumneWatershedVisible) p.delete('mokelumne')
-    else p.set('mokelumne', '0')
-  }
-
-  if (state.tuolumneWatershedVisible !== undefined) {
-    if (state.tuolumneWatershedVisible) p.delete('tuolumne')
-    else p.set('tuolumne', '0')
+  if (state.visibleTributaries !== undefined) {
+    p.delete('sacramento')
+    p.delete('mokelumne')
+    p.delete('tuolumne')
+    p.delete('hiddenTributaries')
+    if (state.visibleTributaries.size > 0) {
+      p.set('visibleTributaries', [...state.visibleTributaries].join(','))
+    } else {
+      p.delete('visibleTributaries')
+    }
   }
 
   if (state.deltaBoundaryVisible !== undefined) {

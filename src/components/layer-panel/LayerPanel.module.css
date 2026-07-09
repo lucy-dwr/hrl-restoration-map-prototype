@@ -229,6 +229,10 @@
   transition: color 0.15s;
 }
 
+.contextGroupGap {
+  height: 6px;
+}
+
 .divider {
   height: 1px;
   background: var(--border-subtle);

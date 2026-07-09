@@ -13,10 +13,8 @@ The prototype is substantially built. What exists:
 - First-run orientation overlay that frames the map as a public overview of early implementation and proposed restoration project locations, not verified habitat accounting.
 - Filter-aware headline tiles strip (project count and total submitted acreage).
 - Right-side detail panel with type badges, description, overview, acreage breakdown, target species, funding sources, and zoom-to-project action.
-- Left-rail panel with Layers and Projects tabs. The Layers tab has basemap radio controls, per-type visibility checkboxes, Sacramento, Mokelumne, and Tuolumne watershed toggles, Delta legal-boundary and Yolo/Sutter bypass-boundary toggles, and a stream-network toggle. The Projects tab has search, system and early-implementation filters, an accessible project list, project selection/zoom actions, and fit-to-visible-projects.
-- Sacramento watershed boundary layer (`public/data/sacramento-watershed.geojson`) sourced from USGS WBD HUC4 1802.
-- Mokelumne watershed boundary layer (`public/data/mokelumne-watershed.geojson`) sourced from USGS WBD HUC8 18040012.
-- Tuolumne watershed boundary layer (`public/data/tuolumne-watershed.geojson`) sourced from USGS WBD HUC8 18040009.
+- Left-rail panel with Layers and Projects tabs. The Layers tab has basemap radio controls, per-type visibility checkboxes, individual HRL tributary watershed toggles, Delta legal-boundary and Yolo/Sutter bypass-boundary toggles, and a stream-network toggle. The Projects tab has search, system and early-implementation filters, an accessible project list, project selection/zoom actions, and fit-to-visible-projects.
+- HRL tributary watershed boundary layer (`public/data/hrl-tributary-watersheds.geojson`) sourced from USGS WBD for Sacramento, American, Feather, Yuba, Putah, Mokelumne, and Tuolumne systems.
 - Sacramento-San Joaquin Delta legal boundary layer (`public/data/delta-boundary.geojson`) sourced from the DWR `i03_LegalDeltaBoundary` ArcGIS service.
 - Yolo and Sutter bypass boundary layers (`public/data/yolo-bypass-boundary.geojson`, `public/data/sutter-bypass-boundary.geojson`) sourced from the DWR `i12_Flood_Bypasses_2014` ArcGIS service for representational context.
 - California stream-network base layer (`public/data/streams.pmtiles`) built from NHDPlus V2 (VPU 18), served as vector tiles via the `pmtiles://` protocol with zoom-dependent reveal by Strahler stream order and dynamic labels for named mainstems / major tributaries.
@@ -41,9 +39,7 @@ hrl-restoration-map-prototype/
 │       ├── hrl_restoration_projects.geojson  # Generated from GeoPackage via scripts/convert-gpkg.py
 │       ├── hrl_restoration_projects.gpkg  # Generated public GeoPackage download via scripts/convert-gpkg.py
 │       ├── hrl_restoration_projects.csv  # Generated public non-spatial CSV download via scripts/convert-gpkg.py
-│       ├── sacramento-watershed.geojson  # Fetched from USGS WBD via scripts/fetch-watershed.py
-│       ├── mokelumne-watershed.geojson  # Fetched from USGS WBD via scripts/fetch-watershed.py
-│       ├── tuolumne-watershed.geojson  # Fetched from USGS WBD via scripts/fetch-watershed.py
+│       ├── hrl-tributary-watersheds.geojson  # Fetched from USGS WBD via scripts/fetch-watershed.py
 │       ├── delta-boundary.geojson  # Fetched from DWR via scripts/fetch-delta-boundary.py
 │       ├── yolo-bypass-boundary.geojson  # Fetched from DWR via scripts/fetch-bypass-boundaries.py
 │       ├── sutter-bypass-boundary.geojson  # Fetched from DWR via scripts/fetch-bypass-boundaries.py
@@ -65,7 +61,7 @@ hrl-restoration-map-prototype/
 ├── tests/                     # (not yet populated)
 └── scripts/
     ├── convert-gpkg.py        # Converts source GeoPackage to public/data/hrl_restoration_projects.*
-    ├── fetch-watershed.py     # Fetches Sacramento HUC4 plus Mokelumne and Tuolumne HUC8 boundaries from USGS WBD
+    ├── fetch-watershed.py     # Fetches HRL tributary watershed boundaries from USGS WBD
     ├── fetch-delta-boundary.py # Fetches Sacramento-San Joaquin Delta legal boundary from DWR
     ├── fetch-bypass-boundaries.py # Fetches Yolo and Sutter bypass boundaries from DWR
     ├── fetch-streams.py       # Builds California stream network PMTiles from NHDPlus V2
@@ -99,7 +95,7 @@ Use this workflow until the production data infrastructure exists:
 
 1. Put the source GeoPackage under `data/source/`.
 2. Run `python scripts/convert-gpkg.py` to convert the relevant layer into `public/data/hrl_restoration_projects.geojson`, `public/data/hrl_restoration_projects.gpkg`, and `public/data/hrl_restoration_projects.csv`. Normalise and validate fields against `RestorationProjectSubmission` during conversion.
-3. Run `python scripts/fetch-watershed.py` to fetch and simplify the Sacramento HUC4, Mokelumne HUC8, and Tuolumne HUC8 watershed boundaries from the USGS WBD REST service and write them to `public/data/sacramento-watershed.geojson`, `public/data/mokelumne-watershed.geojson`, and `public/data/tuolumne-watershed.geojson`.
+3. Run `python scripts/fetch-watershed.py` to fetch and simplify HRL tributary watershed boundaries from the USGS WBD REST service and write them to `public/data/hrl-tributary-watersheds.geojson`.
 4. Run `python scripts/fetch-delta-boundary.py` to fetch and simplify the Sacramento-San Joaquin Delta legal boundary from the DWR ArcGIS service and write it to `public/data/delta-boundary.geojson`.
 5. Run `python scripts/fetch-bypass-boundaries.py` to fetch and simplify the representational Yolo and Sutter bypass boundaries from the DWR `i12_Flood_Bypasses_2014` ArcGIS service and write them to `public/data/yolo-bypass-boundary.geojson` and `public/data/sutter-bypass-boundary.geojson`.
 6. Run `python scripts/fetch-streams.py` to build the California stream-network base layer from NHDPlus V2 (VPU 18) and write it to `public/data/streams.pmtiles`. This script needs the Python deps in `scripts/requirements.txt` plus the `tippecanoe` CLI.

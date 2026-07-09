@@ -29,12 +29,16 @@ fields.
 
 ## `fetch-watershed.py`
 
-Fetches the Sacramento River HUC4 (1802), Mokelumne HUC8 (18040012), and
-Tuolumne HUC8 (18040009) boundaries from the USGS Watershed Boundary Dataset
-REST service, simplifies them, and writes
-`public/data/sacramento-watershed.geojson`,
-`public/data/mokelumne-watershed.geojson`, and
-`public/data/tuolumne-watershed.geojson`.
+Fetches HRL tributary watershed boundaries from the USGS Watershed Boundary
+Dataset REST service, simplifies them, and writes
+`public/data/hrl-tributary-watersheds.geojson`.
+
+The combined output includes Sacramento HUC4 (1802) plus HUC8 boundaries for
+American, Feather, Yuba, Putah, Mokelumne, and Tuolumne systems. Named systems
+represented by multiple HUC8 features are dissolved to one feature per HRL
+tributary watershed so internal HUC boundaries do not render on the map.
+The dashboard exposes the watershed names through layer controls and
+methodology text rather than on-map watershed labels.
 
 Watershed outlines are simplified with Ramer-Douglas-Peucker
 `SIMPLIFY_EPSILON = 0.0007` and written with 5-decimal coordinate precision.

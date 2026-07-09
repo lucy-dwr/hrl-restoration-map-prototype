@@ -36,11 +36,11 @@ The dashboard currently includes:
 - Searchable/filterable project list with project selection, zoom-to-project,
   and fit-to-visible-projects actions
 - Filter-aware headline metric tiles
-- Layer controls for project types, watershed boundaries, the Delta legal
+- Layer controls for project types, HRL tributary watersheds, the Delta legal
   boundary, Yolo and Sutter bypass boundaries, the stream network, and the
   basemap
-- Sacramento watershed boundary from USGS WBD HUC4 1802, plus Mokelumne and
-  Tuolumne watershed boundaries from USGS WBD HUC8 18040012 and 18040009
+- HRL tributary watershed boundaries from USGS WBD for Sacramento, American,
+  Feather, Yuba, Putah, Mokelumne, and Tuolumne systems
 - Sacramento-San Joaquin Delta legal boundary from DWR
 - Yolo and Sutter bypass boundary context layers from DWR flood-bypass data
 - California stream-network PMTiles from NHDPlus V2, including dynamic river
@@ -81,9 +81,7 @@ repeatable data workflow:
    `public/data/hrl_restoration_projects.gpkg`, and
    `public/data/hrl_restoration_projects.csv`.
 4. Run `python scripts/fetch-watershed.py` to generate
-   `public/data/sacramento-watershed.geojson`,
-   `public/data/mokelumne-watershed.geojson`, and
-   `public/data/tuolumne-watershed.geojson`.
+   `public/data/hrl-tributary-watersheds.geojson`.
 5. Run `python scripts/fetch-delta-boundary.py` to generate
    `public/data/delta-boundary.geojson`.
 6. Run `python scripts/fetch-bypass-boundaries.py` to generate

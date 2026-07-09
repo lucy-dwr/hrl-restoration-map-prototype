@@ -68,7 +68,7 @@ Public-facing interface copy should use plain language written for an 8th-grade 
 | Top bar | ✅ |
 | Headline progress tiles | ✅ |
 | Click-to-inspect detail panel | ✅ |
-| Layer toggle panel with project types, watershed boundaries, Delta/bypass boundaries, and stream network | ✅ |
+| Layer toggle panel with project types, HRL tributary watersheds, Delta/bypass boundaries, and stream network | ✅ |
 | Map / imagery basemap toggle | ✅ |
 | Searchable/filterable project list and non-map browsing equivalent | ✅ prototype |
 | Fit-to-visible-projects and zoom-to-project map actions | ✅ |
@@ -94,7 +94,7 @@ Public-facing interface copy should use plain language written for an 8th-grade 
   - Other
 - Headline progress tiles, anchored in the prototype by total project acreage where available.
 - Click-to-inspect for any project (project name, type, project stage, lead entity, system, acreage where available).
-- Layer toggling for project types and (at minimum) one administrative boundary layer.
+- Layer toggling for project types, HRL tributary watersheds, and reference boundaries.
 - URL-encoded state (center, zoom, active layers, selected project, time range if applicable).
 - "Download data" affordances linking back to canonical datasets in the HRL data infrastructure.
 - Concise "About this dashboard" popup, plus fuller methodology and data-source context before production launch.
@@ -206,7 +206,7 @@ The map, the tile strip, and any chart panels are views over a single shared app
 ### 7.4 Layer logic
 
 - Layers are independently toggleable.
-- Project-type layers default ON. Sacramento HUC4, Mokelumne HUC8, and Tuolumne HUC8 watershed outlines default ON as regional context. The Delta legal boundary and Yolo/Sutter bypass boundaries default OFF because they are reference context. The stream network defaults ON.
+- Project-type layers default ON. HRL tributary watershed outlines, the Delta legal boundary, and Yolo/Sutter bypass boundaries default OFF because they are reference context. The stream network defaults ON.
 - Layer order is fixed and not user-configurable in v1 (defer drag-to-reorder).
 
 ### 7.5 Project browsing and filtering
@@ -237,9 +237,7 @@ What gets encoded:
 ?lat=38.4000&lng=-121.8000&zoom=7.00   # map centre and zoom
 &selected=project-3                     # display_id of selected feature (absent = none)
 &hidden=spawning+habitat,tidal+habitat  # comma-separated hidden project types (absent = all visible)
-&sacramento=0                           # Sacramento watershed hidden (absent = visible)
-&mokelumne=0                            # Mokelumne watershed hidden (absent = visible)
-&tuolumne=0                             # Tuolumne watershed hidden (absent = visible)
+&visibleTributaries=american,putah      # comma-separated visible HRL tributary watershed keys
 &delta=1                                # Delta legal boundary visible (absent = hidden)
 &yolobypass=1                           # Yolo Bypass boundary visible (absent = hidden)
 &sutterbypass=1                         # Sutter Bypass boundary visible (absent = hidden)
@@ -335,7 +333,7 @@ The schema comments explicitly mark `funding_secured` and `funding_gap` as not p
 To be elaborated in a `layer-catalog.md` sub-spec. Minimum set:
 
 - Project locations (one logical layer, styled by project type)
-- Watershed boundaries — prototype uses Sacramento HUC4 1802, Mokelumne HUC8 18040012, and Tuolumne HUC8 18040009 outlines from USGS WBD (Decision 32)
+- HRL tributary watersheds — prototype uses a combined USGS WBD GeoJSON layer for Sacramento HUC4 1802 plus dissolved HUC8 boundaries for American, Feather, Yuba, Putah, Mokelumne, and Tuolumne systems, with individual layer controls and no on-map watershed labels (Decisions 43 and 44)
 - Sacramento-San Joaquin Delta legal boundary — prototype uses the DWR `i03_LegalDeltaBoundary` ArcGIS service, default hidden (Decision 25)
 - Yolo and Sutter bypass boundaries — prototype uses the DWR `i12_Flood_Bypasses_2014` ArcGIS service for representational flood-bypass extents, default hidden (Decision 31)
 - Stream network — prototype uses NHDPlus V2 VPU 18 flowlines and water polygons tiled to PMTiles, default visible, with line-following labels for named mainstems and major tributaries (Decision 26)
@@ -543,3 +541,6 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 40 | 2026-07-09 | Prototype first-run and About copy describe the mapped records as "early implementation and proposed" restoration projects and explicitly frame the dashboard as a public, regulator, and partner-agency overview, not verified habitat accounting. | Round 1 reviewers showed mixed purpose clarity and some read the dashboard as an internal tracking or accounting tool. The chosen wording improves first-load orientation while avoiding unapproved Bay-Delta Update / Plan of Implementation policy language. |
 | 41 | 2026-07-09 | Prototype detail-panel UI labels `project_stage` as "Current project stage" and displays all reported stage values. | The field is intended to represent current project stage. Showing all values avoids hiding multivalued records without adding a derived summary status or extra explanatory chrome to the detail pane. |
 | 42 | 2026-07-09 | Prototype project fill color uses a derived primary project type based on the largest reported habitat-specific acreage among listed project types, falling back to the first listed type when no listed type has type-specific acreage. | Multivalued `project_type` records need one color, but list order alone is not a defensible primary-type rule. Fish passage and fish screen types have no habitat-specific acreage fields and should only drive primary color when no listed acreage-bearing habitat type is available. Filters and detail displays still use all submitted project types. |
+| 43 | 2026-07-09 | Prototype watershed context is scoped as HRL tributary watersheds, using one combined `public/data/hrl-tributary-watersheds.geojson` source with individual controls for Sacramento, American, Feather, Yuba, Putah, Mokelumne, and Tuolumne systems. Named systems represented by multiple WBD HUC8 features are dissolved to one feature per tributary watershed. | Round 1 reviewers wanted to inspect and orient to individual tributary watersheds. A combined source keeps map code simple, while per-system controls preserve named watershed identity. Dissolving HUC8 pieces prevents internal subwatershed boundaries from reading as separate watershed outlines. Sacramento remains included because the Sacramento mainstem is an HRL tributary. Delta and bypass geographies remain separate context boundary layers rather than being forced into the tributary watershed group. |
+| 44 | 2026-07-09 | HRL tributary watershed names are exposed through the layer controls and methodology text, not as on-map watershed labels. | The Sacramento River watershed is a higher-level parent geography for much of the HRL area, so an on-map label can appear to identify other local tributary watersheds at closer zooms. Removing watershed text labels avoids misleading local interpretation while keeping the boundaries available for spatial orientation. |
+| 45 | 2026-07-09 | Boundary context layers default OFF on initial launch, including HRL tributary watersheds, the Delta legal boundary, and Yolo/Sutter bypass boundaries. HRL tributary watershed URL state is encoded as `visibleTributaries`, where an absent parameter means no tributary watershed boundaries are visible. | Boundary context is useful for inspection, but showing all boundary layers on first load competes with project locations, streams, and terrain. Default-off boundaries keep the ambient map simpler while preserving explicit opt-in controls for users who want watershed or reference-boundary context. |

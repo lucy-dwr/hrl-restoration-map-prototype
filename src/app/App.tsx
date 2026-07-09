@@ -61,9 +61,7 @@ export function App() {
   const [selectedProject, setSelectedProject] = useState<ProjectProperties | null>(null)
   const [basemap, setBasemap] = useState<BasemapMode>(initial.basemap)
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(initial.hiddenTypes)
-  const [sacramentoWatershedVisible, setSacramentoWatershedVisible] = useState(initial.sacramentoWatershedVisible)
-  const [mokelumneWatershedVisible, setMokelumneWatershedVisible] = useState(initial.mokelumneWatershedVisible)
-  const [tuolumneWatershedVisible, setTuolumneWatershedVisible] = useState(initial.tuolumneWatershedVisible)
+  const [visibleTributaries, setVisibleTributaries] = useState<Set<string>>(initial.visibleTributaries)
   const [deltaBoundaryVisible, setDeltaBoundaryVisible] = useState(initial.deltaBoundaryVisible)
   const [yoloBypassVisible, setYoloBypassVisible] = useState(initial.yoloBypassVisible)
   const [sutterBypassVisible, setSutterBypassVisible] = useState(initial.sutterBypassVisible)
@@ -139,26 +137,12 @@ export function App() {
     })
   }, [])
 
-  const handleToggleSacramentoWatershed = useCallback(() => {
-    setSacramentoWatershedVisible(prev => {
-      const next = !prev
-      writeUrlState({ sacramentoWatershedVisible: next })
-      return next
-    })
-  }, [])
-
-  const handleToggleMokelumneWatershed = useCallback(() => {
-    setMokelumneWatershedVisible(prev => {
-      const next = !prev
-      writeUrlState({ mokelumneWatershedVisible: next })
-      return next
-    })
-  }, [])
-
-  const handleToggleTuolumneWatershed = useCallback(() => {
-    setTuolumneWatershedVisible(prev => {
-      const next = !prev
-      writeUrlState({ tuolumneWatershedVisible: next })
+  const handleToggleTributaryWatershed = useCallback((systemKey: string) => {
+    setVisibleTributaries(prev => {
+      const next = new Set(prev)
+      if (next.has(systemKey)) next.delete(systemKey)
+      else next.add(systemKey)
+      writeUrlState({ visibleTributaries: next })
       return next
     })
   }, [])
@@ -380,9 +364,7 @@ export function App() {
           projectFocusRequest={projectFocusRequest}
           fitVisibleRequest={fitVisibleRequest}
           selectedDisplayId={selectedDisplayId}
-          sacramentoWatershedVisible={sacramentoWatershedVisible}
-          mokelumneWatershedVisible={mokelumneWatershedVisible}
-          tuolumneWatershedVisible={tuolumneWatershedVisible}
+          visibleTributaries={visibleTributaries}
           deltaBoundaryVisible={deltaBoundaryVisible}
           yoloBypassVisible={yoloBypassVisible}
           sutterBypassVisible={sutterBypassVisible}
@@ -418,12 +400,8 @@ export function App() {
           onResetFilters={handleResetProjectFilters}
           hiddenTypes={hiddenTypes}
           onToggleType={handleToggleType}
-          sacramentoWatershedVisible={sacramentoWatershedVisible}
-          onToggleSacramentoWatershed={handleToggleSacramentoWatershed}
-          mokelumneWatershedVisible={mokelumneWatershedVisible}
-          onToggleMokelumneWatershed={handleToggleMokelumneWatershed}
-          tuolumneWatershedVisible={tuolumneWatershedVisible}
-          onToggleTuolumneWatershed={handleToggleTuolumneWatershed}
+          visibleTributaries={visibleTributaries}
+          onToggleTributaryWatershed={handleToggleTributaryWatershed}
           deltaBoundaryVisible={deltaBoundaryVisible}
           onToggleDeltaBoundary={handleToggleDeltaBoundary}
           yoloBypassVisible={yoloBypassVisible}
@@ -691,11 +669,13 @@ export function App() {
               <section>
                 <h3>Context layers</h3>
                 <p>
-                  Watershed boundaries are generated from the USGS Watershed Boundary
-                  Dataset. Delta and bypass context layers are generated from
-                  California Department of Water Resources spatial services. The stream
-                  network is generated from USGS NHDPlus V2 and displayed as vector tiles.
-                  These layers provide geographic context.
+                  HRL tributary watershed boundaries are generated from the USGS
+                  Watershed Boundary Dataset for Sacramento, American, Feather,
+                  Yuba, Putah, Mokelumne, and Tuolumne systems. Delta and bypass
+                  context layers are generated from California Department of Water
+                  Resources spatial services. The stream network is generated from
+                  USGS NHDPlus V2 and displayed as vector tiles. These layers provide
+                  geographic context.
                 </p>
               </section>
               <section>
