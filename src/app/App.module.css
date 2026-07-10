@@ -181,34 +181,51 @@
 .aboutLinks {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  column-gap: 24px;
+  row-gap: 10px;
   margin-top: 16px;
   padding-top: 14px;
   border-top: 1px solid var(--border-subtle);
 }
 
 .aboutLinks a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
   color: var(--accent);
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  padding: 6px 10px;
   text-decoration: none;
 }
 
 .aboutInlineButton {
-  border: none;
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
   color: var(--accent);
   font-family: inherit;
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
-  padding: 0;
+  line-height: 1.2;
+  padding: 6px 10px;
   cursor: pointer;
 }
 
 .aboutLinks a:hover,
 .aboutInlineButton:hover {
+  background: var(--surface-1);
+  border-color: rgba(2, 48, 54, 0.24);
   color: var(--accent-hover);
-  text-decoration: underline;
 }
 
 .aboutLinks a:focus-visible,

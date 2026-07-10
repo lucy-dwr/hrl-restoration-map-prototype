@@ -451,6 +451,7 @@ export function App() {
           data={data}
           basemap={basemap}
           visibleDisplayIds={filteredDisplayIds}
+          fitProjectsOnInitialLoad={!initial.hasUrlState}
           projectFocusRequest={projectFocusRequest}
           boundaryFocusRequest={boundaryFocusRequest}
           fitVisibleRequest={fitVisibleRequest}
@@ -539,6 +540,10 @@ export function App() {
               submitted project acres where available. It is meant for public,
               regulator, and partner-agency orientation, not verified habitat accounting.
             </p>
+            <p className={styles.orientationText}>
+              Zoomed out, each project shows as a colored point. Zoom in to reveal its
+              mapped boundary.
+            </p>
             <div className={styles.orientationActions}>
               <button
                 ref={orientationPrimaryRef}
@@ -602,7 +607,7 @@ export function App() {
               <p>
                 The dashboard is intended as a public, regulator, and partner-agency
                 overview of project locations and basic project information. It is not
-                a verified habitat-accounting tool.
+                a verified habitat accounting tool.
               </p>
               <p>
                 Project information was submitted by HRL participating entities and
@@ -674,7 +679,7 @@ export function App() {
                   the public.
                 </p>
                 <p>
-                  The dashboard is not a verified habitat-accounting tool, a regulatory
+                  The dashboard is not a verified habitat accounting tool, a regulatory
                   determination, or a substitute for project-specific planning,
                   permitting, or monitoring documents.
                 </p>

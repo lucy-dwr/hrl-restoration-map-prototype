@@ -27,6 +27,7 @@ export interface UrlState {
   lat: number
   lng: number
   zoom: number
+  hasUrlState: boolean
   basemap: BasemapMode
   selected: string | null
   hiddenTypes: Set<string>
@@ -41,6 +42,7 @@ const DEFAULTS: UrlState = {
   lat: 38.4,
   lng: -121.8,
   zoom: 7,
+  hasUrlState: false,
   basemap: 'map',
   selected: null,
   hiddenTypes: new Set(),
@@ -81,6 +83,7 @@ export function readUrlState(): UrlState {
     lat: Number.isFinite(lat) ? lat : DEFAULTS.lat,
     lng: Number.isFinite(lng) ? lng : DEFAULTS.lng,
     zoom: Number.isFinite(zoom) ? zoom : DEFAULTS.zoom,
+    hasUrlState: window.location.search.length > 1,
     basemap: p.get('basemap') === 'imagery' ? 'imagery' : DEFAULTS.basemap,
     selected: p.get('selected') ?? null,
     hiddenTypes: new Set(hidden ? hidden.split(',').filter(Boolean) : []),

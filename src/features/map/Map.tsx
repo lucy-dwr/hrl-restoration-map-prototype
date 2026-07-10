@@ -74,8 +74,21 @@ const LABEL_LAYERS = [
 
 const PROJECT_AREA_LAYERS = ['projects-fill', 'projects-outline']
 const PROJECT_POINT_LAYERS = ['projects-point-path', 'projects-point-marker']
-const PROJECT_FILTERED_LAYERS = [...PROJECT_AREA_LAYERS, ...PROJECT_POINT_LAYERS]
-const PROJECT_INTERACTIVE_LAYERS = ['projects-fill', 'projects-point-path', 'projects-point-marker']
+// Overview markers give every project a guaranteed minimum on-screen size at low
+// zoom, where the true polygon footprints are sub-pixel. They cross-fade out as
+// zoom increases and the footprints become legible.
+const PROJECT_CENTROID_LAYERS = ['projects-centroid-marker']
+const PROJECT_FILTERED_LAYERS = [
+  ...PROJECT_AREA_LAYERS,
+  ...PROJECT_POINT_LAYERS,
+  ...PROJECT_CENTROID_LAYERS,
+]
+const PROJECT_INTERACTIVE_LAYERS = [
+  'projects-fill',
+  'projects-point-path',
+  'projects-point-marker',
+  'projects-centroid-marker',
+]
 const PROJECT_SELECTED_LAYERS = [
   'projects-selected-outer-halo',
   'projects-selected-halo',
@@ -83,7 +96,51 @@ const PROJECT_SELECTED_LAYERS = [
   'projects-selected-point-path-halo',
   'projects-selected-point-halo',
   'projects-selected-point',
+  'projects-selected-centroid-halo',
+  'projects-selected-centroid',
 ]
+
+// Overview markers cross-fade into the polygon footprints on a per-feature
+// schedule: each centroid carries fade_start / fade_end zooms derived from its
+// footprint size (see fadeZoomsForFeature), so a large restoration polygon sheds
+// its dot as soon as it is legible while a tiny fish-passage sliver keeps its dot
+// far longer. The fade factor is 1 below fade_start and 0 above fade_end.
+//
+// `zoom` must be the direct input of a top-level interpolate, so the per-feature
+// timing lives in the interpolate outputs, sampled at fixed integer zoom stops.
+// Must sit at or below the smallest possible fade_start (CENTROID_FADE_MIN_START)
+// so that zooming out past a large polygon's fade window clamps to full opacity
+// rather than freezing it mid-fade.
+const CENTROID_FADE_MIN_ZOOM = 5
+const CENTROID_FADE_MAX_ZOOM = 17
+
+// Below this zoom most projects still render as overview dots, so surface the
+// "zoom in to see boundaries" hint; above it the footprints have resolved.
+const ZOOM_HINT_HIDE_ZOOM = 10.5
+
+function centroidFadeFactorAt(zoom: number): maplibregl.ExpressionSpecification {
+  return [
+    'max', 0,
+    ['min', 1,
+      ['/',
+        ['-', ['get', 'fade_end'], zoom],
+        ['max', 0.001, ['-', ['get', 'fade_end'], ['get', 'fade_start']]],
+      ],
+    ],
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+// Scale a base opacity (a constant or a feature-state expression) by each
+// feature's own fade factor across the fixed zoom stops.
+function centroidFadeOpacity(
+  base: number | maplibregl.ExpressionSpecification
+): maplibregl.ExpressionSpecification {
+  const stops: unknown[] = []
+  for (let zoom = CENTROID_FADE_MIN_ZOOM; zoom <= CENTROID_FADE_MAX_ZOOM; zoom += 1) {
+    stops.push(zoom, ['*', base, centroidFadeFactorAt(zoom)])
+  }
+  return ['interpolate', ['linear'], ['zoom'], ...stops] as unknown as maplibregl.ExpressionSpecification
+}
 
 const BOUNDARY_DATA_PATHS = {
   tributaries: 'data/hrl-tributary-watersheds.geojson',
@@ -377,7 +434,9 @@ function layerSelectionFilter(
       : ['==', ['get', 'display_id'], '']
   )
 
-  if (layerId.startsWith('projects-selected-point')) {
+  // Point and centroid layers draw from single-point sources, so they must not
+  // carry the polygon-only geometry filter that the fill/outline layers use.
+  if (layerId.startsWith('projects-selected-point') || layerId.includes('centroid')) {
     return selectionFilter as unknown as maplibregl.FilterSpecification
   }
 
@@ -389,6 +448,7 @@ function projectSourceForLayer(layerId: string): string {
   if (layerId.includes('point-marker') || layerId === 'projects-selected-point') {
     return 'project-point-markers'
   }
+  if (layerId.includes('centroid')) return 'project-centroids'
   return 'projects'
 }
 
@@ -541,6 +601,182 @@ function buildPointMarkerData(raw: FeatureCollection): FeatureCollection {
   }
 }
 
+// Bounding-box centre — a cheap fallback marker position when no interior point
+// can be derived (e.g. degenerate geometry).
+function centroidForFeature(feature: Feature): Position | null {
+  const bounds = boundsForFeatures([feature])
+  if (!bounds) return null
+  const center = bounds.getCenter()
+  return [center.lng, center.lat]
+}
+
+// One outer ring plus any holes.
+type PolygonPart = Position[][]
+
+function ringSignedArea(ring: Position[]): number {
+  let area = 0
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    area += (ring[j][0] + ring[i][0]) * (ring[j][1] - ring[i][1])
+  }
+  return area / 2
+}
+
+function polygonParts(geometry: Geometry | null): PolygonPart[] {
+  if (!geometry) return []
+  if (geometry.type === 'Polygon') return [geometry.coordinates]
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates
+  return []
+}
+
+function largestPolygonPart(geometry: Geometry | null): PolygonPart | null {
+  let best: PolygonPart | null = null
+  let bestArea = Number.NEGATIVE_INFINITY
+  for (const part of polygonParts(geometry)) {
+    if (part.length === 0) continue
+    const area = Math.abs(ringSignedArea(part[0]))
+    if (area > bestArea) {
+      bestArea = area
+      best = part
+    }
+  }
+  return best
+}
+
+// Even-odd ray cast.
+function pointInRing(point: Position, ring: Position[]): boolean {
+  let inside = false
+  const [x, y] = point
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]
+    const [xj, yj] = ring[j]
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+// Inside the outer ring and outside every hole.
+function pointInPart(point: Position, part: PolygonPart): boolean {
+  if (!pointInRing(point, part[0])) return false
+  for (let h = 1; h < part.length; h++) {
+    if (pointInRing(point, part[h])) return false
+  }
+  return true
+}
+
+function ringCentroid(ring: Position[]): Position {
+  let x = 0
+  let y = 0
+  let a = 0
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const f = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1]
+    x += (ring[j][0] + ring[i][0]) * f
+    y += (ring[j][1] + ring[i][1]) * f
+    a += f
+  }
+  a *= 3
+  return a === 0 ? ring[0] : [x / a, y / a]
+}
+
+// Midpoint of the widest interior span where the horizontal line at `y` crosses
+// the part, or null if the line misses it.
+function widestInteriorSpanAt(part: PolygonPart, y: number): { x: number; width: number } | null {
+  const crossings: number[] = []
+  for (const ring of part) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const yi = ring[i][1]
+      const yj = ring[j][1]
+      if ((yi > y) !== (yj > y)) {
+        crossings.push(((ring[j][0] - ring[i][0]) * (y - ring[i][1])) / (ring[j][1] - ring[i][1]) + ring[i][0])
+      }
+    }
+  }
+  crossings.sort((lhs, rhs) => lhs - rhs)
+  let best: { x: number; width: number } | null = null
+  for (let i = 0; i + 1 < crossings.length; i += 2) {
+    const width = crossings[i + 1] - crossings[i]
+    if (!best || width > best.width) best = { x: (crossings[i] + crossings[i + 1]) / 2, width }
+  }
+  return best
+}
+
+const POINT_ON_SURFACE_SAMPLES = 21
+
+// A guaranteed-interior marker anchor. The area centroid of a concave or
+// crescent footprint can land in a notch outside the polygon, so fall back to
+// the midpoint of the widest interior scanline span across the largest part.
+function pointOnSurface(geometry: Geometry | null): Position | null {
+  const part = largestPolygonPart(geometry)
+  if (!part || part[0].length === 0) return null
+
+  const centroid = ringCentroid(part[0])
+  if (pointInPart(centroid, part)) return centroid
+
+  const ys = part[0].map(position => position[1])
+  const minY = Math.min(...ys)
+  const maxY = Math.max(...ys)
+  let best: { x: number; y: number; width: number } | null = null
+  for (let k = 1; k <= POINT_ON_SURFACE_SAMPLES; k++) {
+    const y = minY + ((maxY - minY) * k) / (POINT_ON_SURFACE_SAMPLES + 1)
+    const span = widestInteriorSpanAt(part, y)
+    if (span && (!best || span.width > best.width)) best = { x: span.x, y, width: span.width }
+  }
+  return best ? [best.x, best.y] : null
+}
+
+// The dot becomes redundant once the footprint spans roughly this many pixels,
+// and finishes fading out CENTROID_FADE_SPAN_ZOOM levels later. Start zoom is
+// clamped so nothing fades absurdly early or lingers past the last fade stop.
+// Lower target px => dots give way to polygons at lower zoom (more aggressive).
+const CENTROID_FADE_TARGET_PX = 7
+const CENTROID_FADE_SPAN_ZOOM = 0.5
+const CENTROID_FADE_MIN_START = 7.75
+const CENTROID_FADE_MAX_START = CENTROID_FADE_MAX_ZOOM - CENTROID_FADE_SPAN_ZOOM
+const METERS_PER_DEGREE_LAT = 111320
+// Web-mercator ground resolution (metres/pixel) at the equator, zoom 0.
+const MERCATOR_METERS_PER_PIXEL_Z0 = 156543.03
+
+// Per-feature fade window from footprint size: a larger polygon is legible at a
+// lower zoom, so it sheds its overview dot earlier.
+function fadeZoomsForFeature(feature: Feature): { start: number; end: number } {
+  const bounds = boundsForFeatures([feature])
+  if (!bounds) {
+    return { start: CENTROID_FADE_MIN_START, end: CENTROID_FADE_MIN_START + CENTROID_FADE_SPAN_ZOOM }
+  }
+  const sw = bounds.getSouthWest()
+  const ne = bounds.getNorthEast()
+  const lat = (sw.lat + ne.lat) / 2
+  const cosLat = Math.max(0.1, Math.cos((lat * Math.PI) / 180))
+  const widthMeters = Math.abs(ne.lng - sw.lng) * METERS_PER_DEGREE_LAT * cosLat
+  const heightMeters = Math.abs(ne.lat - sw.lat) * METERS_PER_DEGREE_LAT
+  const maxDimMeters = Math.max(widthMeters, heightMeters, 1)
+  // Zoom at which maxDimMeters spans CENTROID_FADE_TARGET_PX on screen.
+  const rawStart = Math.log2(
+    (CENTROID_FADE_TARGET_PX * MERCATOR_METERS_PER_PIXEL_Z0 * cosLat) / maxDimMeters
+  )
+  const start = Math.min(CENTROID_FADE_MAX_START, Math.max(CENTROID_FADE_MIN_START, rawStart))
+  return { start, end: start + CENTROID_FADE_SPAN_ZOOM }
+}
+
+function buildProjectCentroidData(raw: FeatureCollection): FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: raw.features.flatMap(feature => {
+      const type = feature.geometry?.type
+      if (type !== 'Polygon' && type !== 'MultiPolygon') return []
+      const position = pointOnSurface(feature.geometry) ?? centroidForFeature(feature)
+      if (!position) return []
+      const { start, end } = fadeZoomsForFeature(feature)
+      return [{
+        ...feature,
+        properties: { ...feature.properties, fade_start: start, fade_end: end },
+        geometry: { type: 'Point', coordinates: position },
+      }]
+    }),
+  }
+}
+
 function buildPointPathData(raw: FeatureCollection): FeatureCollection {
   return {
     type: 'FeatureCollection',
@@ -559,6 +795,7 @@ interface MapProps {
   data: FeatureCollection | null
   basemap: BasemapMode
   visibleDisplayIds: Set<string>
+  fitProjectsOnInitialLoad: boolean
   projectFocusRequest: { displayId: string; seq: number } | null
   boundaryFocusRequest: { target: BoundaryFocusTarget; seq: number } | null
   fitVisibleRequest: number
@@ -579,6 +816,7 @@ export function Map({
   data,
   basemap,
   visibleDisplayIds,
+  fitProjectsOnInitialLoad,
   projectFocusRequest,
   boundaryFocusRequest,
   fitVisibleRequest,
@@ -598,12 +836,15 @@ export function Map({
   const mapRef = useRef<maplibregl.Map | null>(null)
   const hoveredFeatureRef = useRef<HoveredMapFeature | null>(null)
   const featureClickedRef = useRef(false)
+  const initialProjectFitDoneRef = useRef(false)
+  const userInteractedBeforeInitialFitRef = useRef(false)
   const boundaryDataCacheRef = useRef<globalThis.Map<string, Promise<FeatureCollection>>>(new globalThis.Map())
   const onProjectSelectRef = useRef(onProjectSelect)
   const onProjectDeselectRef = useRef(onProjectDeselect)
   const onMoveEndRef = useRef(onMoveEnd)
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
+  const [zoomHintVisible, setZoomHintVisible] = useState(() => initialZoom < ZOOM_HINT_HIDE_ZOOM)
 
   useEffect(() => { onProjectSelectRef.current = onProjectSelect }, [onProjectSelect])
   useEffect(() => { onProjectDeselectRef.current = onProjectDeselect }, [onProjectDeselect])
@@ -635,6 +876,23 @@ export function Map({
       const c = map.getCenter()
       onMoveEndRef.current(c.lat, c.lng, map.getZoom())
     })
+
+    // Toggle the "zoom in to see boundaries" hint. Functional update bails out
+    // when unchanged, so the frequent 'zoom' event only re-renders on crossing.
+    const syncZoomHint = () => {
+      const visible = map.getZoom() < ZOOM_HINT_HIDE_ZOOM
+      setZoomHintVisible(prev => (prev === visible ? prev : visible))
+    }
+    map.on('zoom', syncZoomHint)
+
+    const markUserInteraction = () => {
+      if (!initialProjectFitDoneRef.current) userInteractedBeforeInitialFitRef.current = true
+    }
+
+    map.on('dragstart', markUserInteraction)
+    map.on('zoomstart', markUserInteraction)
+    map.on('pitchstart', markUserInteraction)
+    map.on('rotatestart', markUserInteraction)
 
     const handleProjectMouseMove = (e: maplibregl.MapLayerMouseEvent) => {
       if (!e.features?.length) return
@@ -974,6 +1232,11 @@ export function Map({
       data: buildPointPathData(prepared),
       generateId: true,
     })
+    map.addSource('project-centroids', {
+      type: 'geojson',
+      data: buildProjectCentroidData(prepared),
+      generateId: true,
+    })
 
     map.addLayer({
       id: 'projects-fill',
@@ -1004,10 +1267,10 @@ export function Map({
       paint: {
         'line-color': TYPE_MATCH_EXPR,
         'line-width': [
-          'case',
-          ['boolean', ['feature-state', 'hovered'], false],
-          ['interpolate', ['linear'], ['zoom'], 5, 8, 10, 18, 14, 34],
-          ['interpolate', ['linear'], ['zoom'], 5, 6, 10, 14, 14, 28],
+          'interpolate', ['linear'], ['zoom'],
+          5, ['case', ['boolean', ['feature-state', 'hovered'], false], 8, 6],
+          10, ['case', ['boolean', ['feature-state', 'hovered'], false], 18, 14],
+          14, ['case', ['boolean', ['feature-state', 'hovered'], false], 34, 28],
         ],
         'line-opacity': ['case', ['boolean', ['feature-state', 'hovered'], false], 0.42, 0.28],
       },
@@ -1019,15 +1282,40 @@ export function Map({
       paint: {
         'circle-color': TYPE_MATCH_EXPR,
         'circle-radius': [
-          'case',
-          ['boolean', ['feature-state', 'hovered'], false],
-          ['interpolate', ['linear'], ['zoom'], 5, 5.5, 10, 7, 14, 8.5],
-          ['interpolate', ['linear'], ['zoom'], 5, 4, 10, 5.5, 14, 7],
+          'interpolate', ['linear'], ['zoom'],
+          5, ['case', ['boolean', ['feature-state', 'hovered'], false], 5.5, 4],
+          10, ['case', ['boolean', ['feature-state', 'hovered'], false], 7, 5.5],
+          14, ['case', ['boolean', ['feature-state', 'hovered'], false], 8.5, 7],
         ],
         'circle-opacity': ['case', ['boolean', ['feature-state', 'hovered'], false], 0.95, 0.78],
         'circle-stroke-color': '#ffffff',
         'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hovered'], false], 2.2, 1.5],
         'circle-stroke-opacity': 0.92,
+      },
+    })
+    // Overview markers: one dot per polygon project, giving each a guaranteed
+    // minimum size at low zoom. They cross-fade to nothing as the true footprint
+    // becomes legible, so polygon inspection at close zoom is unaffected.
+    map.addLayer({
+      id: 'projects-centroid-marker',
+      type: 'circle',
+      source: 'project-centroids',
+      paint: {
+        'circle-color': TYPE_MATCH_EXPR,
+        // A property may hold only one zoom-based interpolate, so the hover boost
+        // rides inside the interpolate stops rather than wrapping two of them.
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          5, ['case', ['boolean', ['feature-state', 'hovered'], false], 5.5, 4],
+          10, ['case', ['boolean', ['feature-state', 'hovered'], false], 7, 5.5],
+          14, ['case', ['boolean', ['feature-state', 'hovered'], false], 8.5, 7],
+        ],
+        'circle-opacity': centroidFadeOpacity(
+          ['case', ['boolean', ['feature-state', 'hovered'], false], 0.95, 0.82] as unknown as maplibregl.ExpressionSpecification
+        ),
+        'circle-stroke-color': '#ffffff',
+        'circle-stroke-width': ['case', ['boolean', ['feature-state', 'hovered'], false], 2.2, 1.5],
+        'circle-stroke-opacity': centroidFadeOpacity(0.92),
       },
     })
 
@@ -1102,7 +1390,47 @@ export function Map({
         'circle-stroke-opacity': 1,
       },
     })
-  }, [data, mapLoaded])
+    // Selection feedback for the overview markers, so selecting a project while
+    // zoomed out is visible even though the polygon halo is still sub-pixel.
+    // Fades out on the same schedule as the overview markers themselves.
+    map.addLayer({
+      id: 'projects-selected-centroid-halo',
+      type: 'circle',
+      source: 'project-centroids',
+      filter: layerSelectionFilter('projects-selected-centroid-halo', null),
+      paint: {
+        'circle-color': SELECTED_PROJECT_CONTRAST_COLOR,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 8.8, 10, 11.2],
+        'circle-opacity': centroidFadeOpacity(0.84),
+      },
+    })
+    map.addLayer({
+      id: 'projects-selected-centroid',
+      type: 'circle',
+      source: 'project-centroids',
+      filter: layerSelectionFilter('projects-selected-centroid', null),
+      paint: {
+        'circle-color': SELECTED_PROJECT_HALO_COLOR,
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 4.8, 10, 6.6],
+        'circle-opacity': centroidFadeOpacity(0.98),
+        'circle-stroke-color': SELECTED_PROJECT_CONTRAST_COLOR,
+        'circle-stroke-width': 1.4,
+        'circle-stroke-opacity': centroidFadeOpacity(1),
+      },
+    })
+
+    if (
+      fitProjectsOnInitialLoad
+      && !initialProjectFitDoneRef.current
+      && !userInteractedBeforeInitialFitRef.current
+    ) {
+      const initiallyVisibleFeatures = data.features.filter(f => (
+        visibleDisplayIds.has((f.properties as ProjectProperties).display_id)
+      ))
+      initialProjectFitDoneRef.current = true
+      fitFeatureBounds(map, initiallyVisibleFeatures, 9)
+    }
+  }, [data, fitProjectsOnInitialLoad, mapLoaded, visibleDisplayIds])
 
   // Sync project filters
   useEffect(() => {
@@ -1219,6 +1547,14 @@ export function Map({
   return (
     <div className={styles.wrapper}>
       <div ref={containerRef} className={styles.container} />
+      <div
+        className={`${styles.zoomHint} ${zoomHintVisible ? styles.zoomHintVisible : ''}`}
+        role="status"
+        aria-hidden={!zoomHintVisible}
+      >
+        <span className={styles.zoomHintDot} aria-hidden="true" />
+        Projects shown as points — zoom in to see boundaries
+      </div>
       {tooltip && (
         <div
           className={styles.tooltip}

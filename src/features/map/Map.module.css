@@ -9,6 +9,47 @@
   height: 100%;
 }
 
+.zoomHint {
+  position: absolute;
+  top: calc(var(--top-bar-height, 64px) + 16px);
+  left: 50%;
+  transform: translate(-50%, -6px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(88%, 420px);
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.28s ease, transform 0.28s ease, visibility 0s linear 0.28s;
+  z-index: 10;
+}
+
+.zoomHintVisible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.zoomHintDot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--border-default);
+}
+
 .tooltip {
   position: absolute;
   pointer-events: none;

@@ -9,6 +9,8 @@ Read `SPEC.md` before writing code. Treat its Decision Log as canonical, and do 
 The prototype is substantially built. What exists:
 
 - Full-bleed MapLibre map rendering project polygons from `public/data/hrl_restoration_projects.geojson`, with project-type colour symbology, hover tooltip, selection halo, and click-to-inspect selection.
+- Low-zoom overview point markers for polygon projects, placed at a guaranteed-interior "point on surface" of each footprint (not a bounding-box/area centroid, which can fall outside concave shapes) and cross-fading into the true polygon fill/outline on a per-project schedule driven by footprint size, so small projects stay discoverable at the default extent (addresses Round 1 R1-08). A zoom-reactive on-map hint and a first-run overlay sentence explain that points expand into boundaries on zoom-in.
+- On initial load without shared URL state, the map auto-fits to the bounds of all currently visible projects (max zoom 9) rather than a fixed default extent; a shared URL's exact centre and zoom are honoured instead.
 - Top bar branded as "Healthy Rivers and Landscapes Restoration Dashboard" with compact purpose text, a Download data menu, and About popup.
 - First-run orientation overlay that frames the map as a public overview of early implementation and proposed restoration project locations, not verified habitat accounting.
 - Filter-aware headline tiles strip (project count and total project acres).
