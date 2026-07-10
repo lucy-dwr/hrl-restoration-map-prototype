@@ -538,7 +538,7 @@ export function App() {
               The map shows early implementation and proposed Healthy Rivers and
               Landscapes restoration projects, basic descriptions, project types, and
               submitted project acres where available. It is meant for public,
-              regulator, and partner-agency orientation, not verified habitat accounting.
+              regulator, and partner agency orientation, not verified habitat accounting.
             </p>
             <p className={styles.orientationText}>
               Zoomed out, each project shows as a colored point. Zoom in to reveal its
@@ -605,7 +605,7 @@ export function App() {
                 the Sacramento and San Joaquin Rivers and the Bay-Delta.
               </p>
               <p>
-                The dashboard is intended as a public, regulator, and partner-agency
+                The dashboard is intended as a public, regulator, and partner agency
                 overview of project locations and basic project information. It is not
                 a verified habitat accounting tool.
               </p>
