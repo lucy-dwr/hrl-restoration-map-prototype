@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { ACREAGE_COMPACT_LABEL, formatAcreage } from '../../data/acreage'
 import { PROJECT_LAYER_TYPES, TRIBUTARY_WATERSHEDS } from '../../data/layer-options'
+import type { BoundaryFocusTarget } from '../../data/layer-options'
 import type { ProjectProperties } from '../../data/types'
 import { PROJECT_TYPE_COLORS, FALLBACK_COLOR } from '../../features/map/project-colors'
 import type { BasemapMode } from '../../lib/url-state'
@@ -93,6 +94,7 @@ interface Props {
   onToggleTributaryWatershed: (systemKey: string) => void
   onShowAllTributaryWatersheds: () => void
   onHideAllTributaryWatersheds: () => void
+  onZoomToBoundary: (target: BoundaryFocusTarget) => void
   onShowAllReferenceBoundaries: () => void
   onHideAllReferenceBoundaries: () => void
   deltaBoundaryVisible: boolean
@@ -133,6 +135,7 @@ export function LayerPanel({
   onToggleTributaryWatershed,
   onShowAllTributaryWatersheds,
   onHideAllTributaryWatersheds,
+  onZoomToBoundary,
   onShowAllReferenceBoundaries,
   onHideAllReferenceBoundaries,
   deltaBoundaryVisible,
@@ -339,24 +342,35 @@ export function LayerPanel({
                 {TRIBUTARY_WATERSHEDS.map(watershed => {
                   const visible = visibleTributaries.has(watershed.key)
                   return (
-                    <label key={watershed.key} className={styles.row}>
-                      <input
-                        type="checkbox"
-                        className={styles.checkbox}
-                        checked={visible}
-                        onChange={() => onToggleTributaryWatershed(watershed.key)}
-                      />
-                      <span
-                        className={styles.dot}
-                        style={{
-                          background: visible ? watershed.color : DISABLED_SWATCH,
-                          borderRadius: 2,
-                        }}
-                      />
-                      <span className={styles.typeLabel} style={{ color: visible ? undefined : 'var(--text-tertiary)' }}>
-                        {watershed.label} watershed
-                      </span>
-                    </label>
+                    <div key={watershed.key} className={styles.boundaryRow}>
+                      <label className={styles.row}>
+                        <input
+                          type="checkbox"
+                          className={styles.checkbox}
+                          checked={visible}
+                          onChange={() => onToggleTributaryWatershed(watershed.key)}
+                        />
+                        <span
+                          className={styles.dot}
+                          style={{
+                            background: visible ? watershed.color : DISABLED_SWATCH,
+                            borderRadius: 2,
+                          }}
+                        />
+                        <span className={styles.typeLabel} style={{ color: visible ? undefined : 'var(--text-tertiary)' }}>
+                          {watershed.label} watershed
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        className={styles.boundaryZoom}
+                        onClick={() => onZoomToBoundary({ kind: 'tributary', key: watershed.key })}
+                        aria-label={`Zoom to ${watershed.label} watershed`}
+                        title={`Zoom to ${watershed.label} watershed`}
+                      >
+                        ↗
+                      </button>
+                    </div>
                   )
                 })}
                 <div className={styles.contextGroupGap} />
@@ -381,66 +395,99 @@ export function LayerPanel({
                     </button>
                   </div>
                 </div>
-                <label className={styles.row}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={deltaBoundaryVisible}
-                    onChange={onToggleDeltaBoundary}
-                  />
-                  <span
-                    className={styles.dot}
-                    style={{
-                      background: deltaBoundaryVisible
-                        ? CONTEXT_LAYER_COLORS.deltaBoundary
-                        : DISABLED_SWATCH,
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span className={styles.typeLabel} style={{ color: deltaBoundaryVisible ? undefined : 'var(--text-tertiary)' }}>
-                    Legal Delta boundary
-                  </span>
-                </label>
-                <label className={styles.row}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={yoloBypassVisible}
-                    onChange={onToggleYoloBypass}
-                  />
-                  <span
-                    className={styles.dot}
-                    style={{
-                      background: yoloBypassVisible
-                        ? CONTEXT_LAYER_COLORS.yoloBypass
-                        : DISABLED_SWATCH,
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span className={styles.typeLabel} style={{ color: yoloBypassVisible ? undefined : 'var(--text-tertiary)' }}>
-                    Yolo Bypass boundary
-                  </span>
-                </label>
-                <label className={styles.row}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={sutterBypassVisible}
-                    onChange={onToggleSutterBypass}
-                  />
-                  <span
-                    className={styles.dot}
-                    style={{
-                      background: sutterBypassVisible
-                        ? CONTEXT_LAYER_COLORS.sutterBypass
-                        : DISABLED_SWATCH,
-                      borderRadius: 2,
-                    }}
-                  />
-                  <span className={styles.typeLabel} style={{ color: sutterBypassVisible ? undefined : 'var(--text-tertiary)' }}>
-                    Sutter Bypass boundary
-                  </span>
-                </label>
+                <div className={styles.boundaryRow}>
+                  <label className={styles.row}>
+                    <input
+                      type="checkbox"
+                      className={styles.checkbox}
+                      checked={deltaBoundaryVisible}
+                      onChange={onToggleDeltaBoundary}
+                    />
+                    <span
+                      className={styles.dot}
+                      style={{
+                        background: deltaBoundaryVisible
+                          ? CONTEXT_LAYER_COLORS.deltaBoundary
+                          : DISABLED_SWATCH,
+                        borderRadius: 2,
+                      }}
+                    />
+                    <span className={styles.typeLabel} style={{ color: deltaBoundaryVisible ? undefined : 'var(--text-tertiary)' }}>
+                      Legal Delta boundary
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    className={styles.boundaryZoom}
+                    onClick={() => onZoomToBoundary({ kind: 'delta' })}
+                    aria-label="Zoom to Legal Delta boundary"
+                    title="Zoom to Legal Delta boundary"
+                  >
+                    ↗
+                  </button>
+                </div>
+                <div className={styles.boundaryRow}>
+                  <label className={styles.row}>
+                    <input
+                      type="checkbox"
+                      className={styles.checkbox}
+                      checked={yoloBypassVisible}
+                      onChange={onToggleYoloBypass}
+                    />
+                    <span
+                      className={styles.dot}
+                      style={{
+                        background: yoloBypassVisible
+                          ? CONTEXT_LAYER_COLORS.yoloBypass
+                          : DISABLED_SWATCH,
+                        borderRadius: 2,
+                      }}
+                    />
+                    <span className={styles.typeLabel} style={{ color: yoloBypassVisible ? undefined : 'var(--text-tertiary)' }}>
+                      Yolo Bypass boundary
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    className={styles.boundaryZoom}
+                    onClick={() => onZoomToBoundary({ kind: 'yolo-bypass' })}
+                    aria-label="Zoom to Yolo Bypass boundary"
+                    title="Zoom to Yolo Bypass boundary"
+                  >
+                    ↗
+                  </button>
+                </div>
+                <div className={styles.boundaryRow}>
+                  <label className={styles.row}>
+                    <input
+                      type="checkbox"
+                      className={styles.checkbox}
+                      checked={sutterBypassVisible}
+                      onChange={onToggleSutterBypass}
+                    />
+                    <span
+                      className={styles.dot}
+                      style={{
+                        background: sutterBypassVisible
+                          ? CONTEXT_LAYER_COLORS.sutterBypass
+                          : DISABLED_SWATCH,
+                        borderRadius: 2,
+                      }}
+                    />
+                    <span className={styles.typeLabel} style={{ color: sutterBypassVisible ? undefined : 'var(--text-tertiary)' }}>
+                      Sutter Bypass boundary
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    className={styles.boundaryZoom}
+                    onClick={() => onZoomToBoundary({ kind: 'sutter-bypass' })}
+                    aria-label="Zoom to Sutter Bypass boundary"
+                    title="Zoom to Sutter Bypass boundary"
+                  >
+                    ↗
+                  </button>
+                </div>
               </CollapsibleSection>
 
               <div className={styles.divider} />
@@ -560,8 +607,9 @@ export function LayerPanel({
                           className={styles.projectZoom}
                           onClick={() => onZoomToProject(project.display_id)}
                           aria-label={`Zoom to ${project.project_name}`}
+                          title={`Zoom to ${project.project_name}`}
                         >
-                          Zoom
+                          ↗
                         </button>
                       </div>
                     )

@@ -19,3 +19,9 @@ export const TRIBUTARY_WATERSHEDS = [
   { key: 'mokelumne', label: 'Mokelumne', color: '#9087ae' },
   { key: 'tuolumne', label: 'Tuolumne', color: '#a78355' },
 ]
+
+export type BoundaryFocusTarget =
+  | { kind: 'tributary'; key: string }
+  | { kind: 'delta' }
+  | { kind: 'yolo-bypass' }
+  | { kind: 'sutter-bypass' }

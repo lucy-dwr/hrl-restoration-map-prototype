@@ -6,6 +6,7 @@ import { HeadlineTiles } from '../components/tiles/HeadlineTiles'
 import { DetailPanel } from '../components/detail-panel/DetailPanel'
 import { LayerPanel } from '../components/layer-panel/LayerPanel'
 import { PROJECT_LAYER_TYPES, TRIBUTARY_WATERSHEDS } from '../data/layer-options'
+import type { BoundaryFocusTarget } from '../data/layer-options'
 import type { ProjectProperties } from '../data/types'
 import type { BasemapMode } from '../lib/url-state'
 import { readUrlState, writeUrlState } from '../lib/url-state'
@@ -71,6 +72,7 @@ export function App() {
   const [systemFilter, setSystemFilter] = useState('')
   const [earlyOnly, setEarlyOnly] = useState(false)
   const [projectFocusRequest, setProjectFocusRequest] = useState<{ displayId: string; seq: number } | null>(null)
+  const [boundaryFocusRequest, setBoundaryFocusRequest] = useState<{ target: BoundaryFocusTarget; seq: number } | null>(null)
   const [fitVisibleRequest, setFitVisibleRequest] = useState(0)
   const [layerPanelOpen, setLayerPanelOpen] = useState(true)
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -306,6 +308,38 @@ export function App() {
     setFitVisibleRequest(prev => prev + 1)
   }, [])
 
+  const handleZoomToBoundary = useCallback((target: BoundaryFocusTarget) => {
+    if (target.kind === 'tributary') {
+      setVisibleTributaries(prev => {
+        if (prev.has(target.key)) return prev
+        const next = new Set(prev)
+        next.add(target.key)
+        writeUrlState({ visibleTributaries: next })
+        return next
+      })
+    } else if (target.kind === 'delta') {
+      setDeltaBoundaryVisible(prev => {
+        if (prev) return prev
+        writeUrlState({ deltaBoundaryVisible: true })
+        return true
+      })
+    } else if (target.kind === 'yolo-bypass') {
+      setYoloBypassVisible(prev => {
+        if (prev) return prev
+        writeUrlState({ yoloBypassVisible: true })
+        return true
+      })
+    } else if (target.kind === 'sutter-bypass') {
+      setSutterBypassVisible(prev => {
+        if (prev) return prev
+        writeUrlState({ sutterBypassVisible: true })
+        return true
+      })
+    }
+
+    setBoundaryFocusRequest({ target, seq: Date.now() })
+  }, [])
+
   const handleResetProjectFilters = useCallback(() => {
     const resetHiddenTypes = new Set<string>()
     setProjectSearch('')
@@ -418,6 +452,7 @@ export function App() {
           basemap={basemap}
           visibleDisplayIds={filteredDisplayIds}
           projectFocusRequest={projectFocusRequest}
+          boundaryFocusRequest={boundaryFocusRequest}
           fitVisibleRequest={fitVisibleRequest}
           selectedDisplayId={selectedDisplayId}
           visibleTributaries={visibleTributaries}
@@ -462,6 +497,7 @@ export function App() {
           onToggleTributaryWatershed={handleToggleTributaryWatershed}
           onShowAllTributaryWatersheds={handleShowAllTributaryWatersheds}
           onHideAllTributaryWatersheds={handleHideAllTributaryWatersheds}
+          onZoomToBoundary={handleZoomToBoundary}
           onShowAllReferenceBoundaries={handleShowAllReferenceBoundaries}
           onHideAllReferenceBoundaries={handleHideAllReferenceBoundaries}
           deltaBoundaryVisible={deltaBoundaryVisible}

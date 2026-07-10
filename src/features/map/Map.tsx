@@ -5,6 +5,7 @@ import { Protocol } from 'pmtiles'
 import type { FeatureCollection, Feature, Geometry, Position } from 'geojson'
 import { TYPE_MATCH_EXPR } from './project-colors'
 import { ACREAGE_LABEL, formatAcreage } from '../../data/acreage'
+import type { BoundaryFocusTarget } from '../../data/layer-options'
 import type { ProjectProperties } from '../../data/types'
 import type { BasemapMode } from '../../lib/url-state'
 import styles from './Map.module.css'
@@ -83,6 +84,13 @@ const PROJECT_SELECTED_LAYERS = [
   'projects-selected-point-halo',
   'projects-selected-point',
 ]
+
+const BOUNDARY_DATA_PATHS = {
+  tributaries: 'data/hrl-tributary-watersheds.geojson',
+  delta: 'data/delta-boundary.geojson',
+  'yolo-bypass': 'data/yolo-bypass-boundary.geojson',
+  'sutter-bypass': 'data/sutter-bypass-boundary.geojson',
+} as const
 
 const SELECTED_PROJECT_CONTRAST_COLOR = '#102f34'
 const SELECTED_PROJECT_HALO_COLOR = '#ffffff'
@@ -297,6 +305,34 @@ function fitFeatureBounds(map: maplibregl.Map, features: Feature[], maxZoom = 12
     maxZoom,
     duration: 650,
   })
+}
+
+async function loadBoundaryData(
+  cache: Map<string, Promise<FeatureCollection>>,
+  cacheKey: keyof typeof BOUNDARY_DATA_PATHS
+): Promise<FeatureCollection> {
+  const existing = cache.get(cacheKey)
+  if (existing) return existing
+
+  const request = fetch(`${import.meta.env.BASE_URL}${BOUNDARY_DATA_PATHS[cacheKey]}`)
+    .then(response => {
+      if (!response.ok) throw new Error(`Failed to load ${BOUNDARY_DATA_PATHS[cacheKey]}`)
+      return response.json() as Promise<FeatureCollection>
+    })
+
+  cache.set(cacheKey, request)
+  return request
+}
+
+function boundaryFeaturesForTarget(
+  data: FeatureCollection,
+  target: BoundaryFocusTarget
+): Feature[] {
+  if (target.kind !== 'tributary') return data.features
+
+  return data.features.filter(feature => (
+    (feature.properties as Record<string, unknown> | null)?.['system_key'] === target.key
+  ))
 }
 
 function layerVisibilityFilter(
@@ -524,6 +560,7 @@ interface MapProps {
   basemap: BasemapMode
   visibleDisplayIds: Set<string>
   projectFocusRequest: { displayId: string; seq: number } | null
+  boundaryFocusRequest: { target: BoundaryFocusTarget; seq: number } | null
   fitVisibleRequest: number
   selectedDisplayId: string | null
   visibleTributaries: Set<string>
@@ -543,6 +580,7 @@ export function Map({
   basemap,
   visibleDisplayIds,
   projectFocusRequest,
+  boundaryFocusRequest,
   fitVisibleRequest,
   selectedDisplayId,
   visibleTributaries,
@@ -560,6 +598,7 @@ export function Map({
   const mapRef = useRef<maplibregl.Map | null>(null)
   const hoveredFeatureRef = useRef<HoveredMapFeature | null>(null)
   const featureClickedRef = useRef(false)
+  const boundaryDataCacheRef = useRef<globalThis.Map<string, Promise<FeatureCollection>>>(new globalThis.Map())
   const onProjectSelectRef = useRef(onProjectSelect)
   const onProjectDeselectRef = useRef(onProjectDeselect)
   const onMoveEndRef = useRef(onMoveEnd)
@@ -1085,6 +1124,25 @@ export function Map({
     ))
     fitFeatureBounds(mapRef.current, features, 13)
   }, [data, mapLoaded, projectFocusRequest])
+
+  // Zoom to a requested boundary
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current || !boundaryFocusRequest) return
+
+    let cancelled = false
+    const map = mapRef.current
+    const { target } = boundaryFocusRequest
+    const cacheKey = target.kind === 'tributary' ? 'tributaries' : target.kind
+
+    loadBoundaryData(boundaryDataCacheRef.current, cacheKey)
+      .then(boundaryData => {
+        if (cancelled) return
+        fitFeatureBounds(map, boundaryFeaturesForTarget(boundaryData, target), 10)
+      })
+      .catch(err => console.error('Failed to zoom to boundary', err))
+
+    return () => { cancelled = true }
+  }, [boundaryFocusRequest, mapLoaded])
 
   // Fit the map to currently visible/filtered projects
   useEffect(() => {
