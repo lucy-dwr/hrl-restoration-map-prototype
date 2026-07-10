@@ -5,6 +5,7 @@ import { TopBar } from '../components/top-bar/TopBar'
 import { HeadlineTiles } from '../components/tiles/HeadlineTiles'
 import { DetailPanel } from '../components/detail-panel/DetailPanel'
 import { LayerPanel } from '../components/layer-panel/LayerPanel'
+import { PROJECT_LAYER_TYPES, TRIBUTARY_WATERSHEDS } from '../data/layer-options'
 import type { ProjectProperties } from '../data/types'
 import type { BasemapMode } from '../lib/url-state'
 import { readUrlState, writeUrlState } from '../lib/url-state'
@@ -137,6 +138,18 @@ export function App() {
     })
   }, [])
 
+  const handleShowAllProjectTypes = useCallback(() => {
+    const next = new Set<string>()
+    setHiddenTypes(next)
+    writeUrlState({ hiddenTypes: next })
+  }, [])
+
+  const handleHideAllProjectTypes = useCallback(() => {
+    const next = new Set(PROJECT_LAYER_TYPES)
+    setHiddenTypes(next)
+    writeUrlState({ hiddenTypes: next })
+  }, [])
+
   const handleToggleTributaryWatershed = useCallback((systemKey: string) => {
     setVisibleTributaries(prev => {
       const next = new Set(prev)
@@ -144,6 +157,40 @@ export function App() {
       else next.add(systemKey)
       writeUrlState({ visibleTributaries: next })
       return next
+    })
+  }, [])
+
+  const handleShowAllTributaryWatersheds = useCallback(() => {
+    const nextTributaries = new Set(TRIBUTARY_WATERSHEDS.map(watershed => watershed.key))
+    setVisibleTributaries(nextTributaries)
+    writeUrlState({ visibleTributaries: nextTributaries })
+  }, [])
+
+  const handleHideAllTributaryWatersheds = useCallback(() => {
+    const nextTributaries = new Set<string>()
+    setVisibleTributaries(nextTributaries)
+    writeUrlState({ visibleTributaries: nextTributaries })
+  }, [])
+
+  const handleShowAllReferenceBoundaries = useCallback(() => {
+    setDeltaBoundaryVisible(true)
+    setYoloBypassVisible(true)
+    setSutterBypassVisible(true)
+    writeUrlState({
+      deltaBoundaryVisible: true,
+      yoloBypassVisible: true,
+      sutterBypassVisible: true,
+    })
+  }, [])
+
+  const handleHideAllReferenceBoundaries = useCallback(() => {
+    setDeltaBoundaryVisible(false)
+    setYoloBypassVisible(false)
+    setSutterBypassVisible(false)
+    writeUrlState({
+      deltaBoundaryVisible: false,
+      yoloBypassVisible: false,
+      sutterBypassVisible: false,
     })
   }, [])
 
@@ -239,9 +286,18 @@ export function App() {
     }
 
     const hiddenTypeLabels = [...hiddenTypes].sort()
-    hiddenTypeLabels.forEach(type => {
-      chips.push({ id: `hidden-type-${type}`, label: `Hidden: ${capitalize(type)}` })
-    })
+    if (hiddenTypeLabels.length === PROJECT_LAYER_TYPES.length) {
+      chips.push({ id: 'hidden-types-all', label: 'All project types hidden' })
+    } else if (hiddenTypeLabels.length >= 4) {
+      chips.push({
+        id: 'hidden-types-summary',
+        label: `${hiddenTypeLabels.length} project types hidden`,
+      })
+    } else {
+      hiddenTypeLabels.forEach(type => {
+        chips.push({ id: `hidden-type-${type}`, label: `Hidden: ${capitalize(type)}` })
+      })
+    }
 
     return chips
   }, [earlyOnly, hiddenTypes, projectSearch, systemFilter])
@@ -400,8 +456,14 @@ export function App() {
           onResetFilters={handleResetProjectFilters}
           hiddenTypes={hiddenTypes}
           onToggleType={handleToggleType}
+          onShowAllProjectTypes={handleShowAllProjectTypes}
+          onHideAllProjectTypes={handleHideAllProjectTypes}
           visibleTributaries={visibleTributaries}
           onToggleTributaryWatershed={handleToggleTributaryWatershed}
+          onShowAllTributaryWatersheds={handleShowAllTributaryWatersheds}
+          onHideAllTributaryWatersheds={handleHideAllTributaryWatersheds}
+          onShowAllReferenceBoundaries={handleShowAllReferenceBoundaries}
+          onHideAllReferenceBoundaries={handleHideAllReferenceBoundaries}
           deltaBoundaryVisible={deltaBoundaryVisible}
           onToggleDeltaBoundary={handleToggleDeltaBoundary}
           yoloBypassVisible={yoloBypassVisible}

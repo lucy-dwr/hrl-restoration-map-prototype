@@ -1,33 +1,13 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { ACREAGE_COMPACT_LABEL, formatAcreage } from '../../data/acreage'
+import { PROJECT_LAYER_TYPES, TRIBUTARY_WATERSHEDS } from '../../data/layer-options'
 import type { ProjectProperties } from '../../data/types'
 import { PROJECT_TYPE_COLORS, FALLBACK_COLOR } from '../../features/map/project-colors'
 import type { BasemapMode } from '../../lib/url-state'
 import styles from './LayerPanel.module.css'
 
-const ALL_TYPES = [
-  'bypass floodplain habitat',
-  'fish food production',
-  'fish passage improvement',
-  'fish screen installation or improvement',
-  'rearing habitat',
-  'spawning habitat',
-  'tidal habitat',
-  'tributary floodplain habitat',
-  'other',
-]
-
 const DISABLED_SWATCH = '#cbd3cc'
-const TRIBUTARY_WATERSHEDS = [
-  { key: 'sacramento', label: 'Sacramento', color: '#8f8798' },
-  { key: 'american', label: 'American', color: '#a77484' },
-  { key: 'feather', label: 'Feather', color: '#9a854e' },
-  { key: 'yuba', label: 'Yuba', color: '#7f8a55' },
-  { key: 'putah', label: 'Putah', color: '#b08362' },
-  { key: 'mokelumne', label: 'Mokelumne', color: '#9087ae' },
-  { key: 'tuolumne', label: 'Tuolumne', color: '#a78355' },
-]
 const CONTEXT_LAYER_COLORS = {
   deltaBoundary: '#00504b',
   yoloBypass: '#d6901a',
@@ -107,8 +87,14 @@ interface Props {
   onResetFilters: () => void
   hiddenTypes: Set<string>
   onToggleType: (type: string) => void
+  onShowAllProjectTypes: () => void
+  onHideAllProjectTypes: () => void
   visibleTributaries: Set<string>
   onToggleTributaryWatershed: (systemKey: string) => void
+  onShowAllTributaryWatersheds: () => void
+  onHideAllTributaryWatersheds: () => void
+  onShowAllReferenceBoundaries: () => void
+  onHideAllReferenceBoundaries: () => void
   deltaBoundaryVisible: boolean
   onToggleDeltaBoundary: () => void
   yoloBypassVisible: boolean
@@ -141,8 +127,14 @@ export function LayerPanel({
   onResetFilters,
   hiddenTypes,
   onToggleType,
+  onShowAllProjectTypes,
+  onHideAllProjectTypes,
   visibleTributaries,
   onToggleTributaryWatershed,
+  onShowAllTributaryWatersheds,
+  onHideAllTributaryWatersheds,
+  onShowAllReferenceBoundaries,
+  onHideAllReferenceBoundaries,
   deltaBoundaryVisible,
   onToggleDeltaBoundary,
   yoloBypassVisible,
@@ -158,6 +150,12 @@ export function LayerPanel({
   const [collapsedSections, setCollapsedSections] = useState<Set<LayerSectionId>>(() => new Set())
   const hasActiveFilters = activeFilterChips.length > 0
   const filtersHideAllProjects = hasActiveFilters && totalProjectCount > 0 && projects.length === 0
+  const allProjectTypesVisible = PROJECT_LAYER_TYPES.every(type => !hiddenTypes.has(type))
+  const allProjectTypesHidden = PROJECT_LAYER_TYPES.every(type => hiddenTypes.has(type))
+  const allTributaryWatershedsVisible = TRIBUTARY_WATERSHEDS.every(watershed => visibleTributaries.has(watershed.key))
+  const allTributaryWatershedsHidden = TRIBUTARY_WATERSHEDS.every(watershed => !visibleTributaries.has(watershed.key))
+  const allReferenceBoundariesVisible = deltaBoundaryVisible && yoloBypassVisible && sutterBypassVisible
+  const allReferenceBoundariesHidden = !deltaBoundaryVisible && !yoloBypassVisible && !sutterBypassVisible
 
   function toggleLayerSection(section: LayerSectionId) {
     setCollapsedSections(prev => {
@@ -268,7 +266,25 @@ export function LayerPanel({
                 <p className={styles.sectionNote}>
                   Colors show each project's main habitat type. A project may include other habitat types too.
                 </p>
-                {ALL_TYPES.map(type => {
+                <div className={styles.groupActions} aria-label="Project type layer actions">
+                  <button
+                    type="button"
+                    className={styles.groupActionButton}
+                    onClick={onShowAllProjectTypes}
+                    disabled={allProjectTypesVisible}
+                  >
+                    Select all
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.groupActionButton}
+                    onClick={onHideAllProjectTypes}
+                    disabled={allProjectTypesHidden}
+                  >
+                    Clear
+                  </button>
+                </div>
+                {PROJECT_LAYER_TYPES.map(type => {
                   const visible = !hiddenTypes.has(type)
                   const color = PROJECT_TYPE_COLORS[type] ?? FALLBACK_COLOR
                   return (
@@ -299,9 +315,27 @@ export function LayerPanel({
                 expanded={isLayerSectionExpanded('boundaries')}
                 onToggle={toggleLayerSection}
               >
-                <p className={styles.sectionNote}>
-                  USGS watershed boundaries for HRL tributary systems represented in the dashboard.
-                </p>
+                <div className={styles.subgroupHeader}>
+                  <div className={styles.subgroupLabel}>Watersheds</div>
+                  <div className={styles.subgroupActions} aria-label="Watershed boundary actions">
+                    <button
+                      type="button"
+                      className={styles.groupActionButton}
+                      onClick={onShowAllTributaryWatersheds}
+                      disabled={allTributaryWatershedsVisible}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.groupActionButton}
+                      onClick={onHideAllTributaryWatersheds}
+                      disabled={allTributaryWatershedsHidden}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
                 {TRIBUTARY_WATERSHEDS.map(watershed => {
                   const visible = visibleTributaries.has(watershed.key)
                   return (
@@ -326,6 +360,27 @@ export function LayerPanel({
                   )
                 })}
                 <div className={styles.contextGroupGap} />
+                <div className={styles.subgroupHeader}>
+                  <div className={styles.subgroupLabel}>Reference boundaries</div>
+                  <div className={styles.subgroupActions} aria-label="Reference boundary actions">
+                    <button
+                      type="button"
+                      className={styles.groupActionButton}
+                      onClick={onShowAllReferenceBoundaries}
+                      disabled={allReferenceBoundariesVisible}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.groupActionButton}
+                      onClick={onHideAllReferenceBoundaries}
+                      disabled={allReferenceBoundariesHidden}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
                 <label className={styles.row}>
                   <input
                     type="checkbox"
