@@ -590,7 +590,7 @@ export function LayerPanel({
                             {project.acreage != null && (
                               <>
                                 {' · '}
-                                <span aria-label={`Total project acres: ${formatAcreage(project.acreage)}`}>
+                                <span aria-label={`Project acres: ${formatAcreage(project.acreage)}`}>
                                   {formatAcreage(project.acreage)} {ACREAGE_COMPACT_LABEL}
                                 </span>
                               </>

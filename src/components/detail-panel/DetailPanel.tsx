@@ -1,10 +1,14 @@
+import { Fragment } from 'react'
 import {
   ACREAGE_DEFINITION,
   ACREAGE_LABEL,
+  HABITAT_TYPE_ACRES_HELP,
+  PROJECT_ACRES_HELP,
   formatAcreage,
 } from '../../data/acreage'
 import type { ProjectProperties } from '../../data/types'
 import { PROJECT_TYPE_COLORS, FALLBACK_COLOR } from '../../features/map/project-colors'
+import { InfoPopover } from '../info-popover/InfoPopover'
 import styles from './DetailPanel.module.css'
 
 interface Props {
@@ -119,7 +123,12 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
         </section>
 
         <section className={styles.section}>
-          <h3 className={styles.sectionLabel}>{ACREAGE_LABEL}</h3>
+          <div className={styles.sectionLabelWithHelp}>
+            <h3 className={styles.sectionLabel}>{ACREAGE_LABEL}</h3>
+            <InfoPopover label="About project acres">
+              {PROJECT_ACRES_HELP}
+            </InfoPopover>
+          </div>
           <div className={styles.acreageTotal}>
             {project.acreage != null
               ? <><strong>{formatAcreage(project.acreage)}</strong> acres</>
@@ -127,14 +136,22 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
           </div>
           <p className={styles.comment}>{ACREAGE_DEFINITION}</p>
           {acreageRows.length > 0 && (
-            <dl className={`${styles.dl} ${styles.acreageBreakdown}`}>
-              {acreageRows.map(r => (
-                <>
-                  <dt key={`${r.label}-dt`}>{r.label}</dt>
-                  <dd key={`${r.label}-dd`}>{formatAcreage(r.value)} acres</dd>
-                </>
-              ))}
-            </dl>
+            <div className={styles.acreageBreakdown}>
+              <div className={styles.subsectionLabelWithHelp}>
+                <h4 className={styles.subsectionLabel}>Habitat type acres</h4>
+                <InfoPopover label="About habitat type acres">
+                  {HABITAT_TYPE_ACRES_HELP}
+                </InfoPopover>
+              </div>
+              <dl className={styles.dl}>
+                {acreageRows.map(r => (
+                  <Fragment key={r.label}>
+                    <dt>{r.label}</dt>
+                    <dd>{formatAcreage(r.value)} acres</dd>
+                  </Fragment>
+                ))}
+              </dl>
+            </div>
           )}
         </section>
 

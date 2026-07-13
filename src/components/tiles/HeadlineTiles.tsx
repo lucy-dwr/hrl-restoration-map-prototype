@@ -1,6 +1,11 @@
 import type { FeatureCollection } from 'geojson'
-import { ACREAGE_TILE_LABEL, formatAcreage } from '../../data/acreage'
+import {
+  ACREAGE_TILE_LABEL,
+  TOTAL_PROJECT_ACRES_HELP,
+  formatAcreage,
+} from '../../data/acreage'
 import type { ProjectProperties } from '../../data/types'
+import { InfoPopover } from '../info-popover/InfoPopover'
 import styles from './HeadlineTiles.module.css'
 
 interface Props {
@@ -34,11 +39,16 @@ export function HeadlineTiles({ data, layerPanelOpen = false }: Props) {
           <span className={styles.value}>
             {withAcreage.length > 0 ? formatAcreage(totalAcreage) : '—'}
           </span>
-          <span className={styles.label}>{ACREAGE_TILE_LABEL}</span>
+          <span className={styles.labelWithHelp}>
+            <span>{ACREAGE_TILE_LABEL}</span>
+            <InfoPopover label="About total project acres" placement="top">
+              {TOTAL_PROJECT_ACRES_HELP}
+            </InfoPopover>
+          </span>
         </div>
       </div>
       <p className={styles.note}>
-        Map filters change these totals. Acres are submitted by HRL entities and are not confirmed habitat accounting acres.
+        Filters and layer selections change these totals. Project acres are for public orientation and are not final HRL habitat accounting acres.
       </p>
     </div>
   )

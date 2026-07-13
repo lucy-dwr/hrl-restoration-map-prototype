@@ -133,6 +133,17 @@
   margin: 0 0 10px;
 }
 
+.sectionLabelWithHelp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.sectionLabelWithHelp .sectionLabel {
+  margin: 0;
+}
+
 .description {
   font-size: var(--text-base);
   color: var(--text-secondary);
@@ -173,6 +184,22 @@
 
 .acreageBreakdown {
   margin-top: 12px;
+}
+
+.subsectionLabelWithHelp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.subsectionLabel {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .muted {

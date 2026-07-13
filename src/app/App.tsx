@@ -551,7 +551,7 @@ export function App() {
             <p id="orientation-description" className={styles.orientationText}>
               The map shows early implementation and proposed Healthy Rivers and
               Landscapes restoration projects, basic descriptions, project types, and
-              submitted project acres where available. It is meant for public,
+              project acres where available. It is meant for public,
               regulator, and partner agency orientation, not verified habitat accounting.
             </p>
             <p className={styles.orientationText}>
@@ -755,9 +755,13 @@ export function App() {
                   <div>
                     <dt>Project acres</dt>
                     <dd>
-                      These are acres reported for the project by HRL participating
-                      entities. They are useful for a high-level map summary. They
-                      are not final HRL habitat-accounting acres.
+                      Acres reported for this project by HRL participating
+                      entities. These values are for public orientation and are
+                      not final HRL habitat accounting acres. Acres may encompass
+                      a mix of aquatic, transitional, and terrestrial areas. The
+                      aquatic habitat type acres listed in a project detail panel
+                      are reported category values, so they may not add up to the
+                      total project acres shown here.
                     </dd>
                   </div>
                   <div>
