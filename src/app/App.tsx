@@ -16,6 +16,20 @@ const initial = readUrlState()
 const ORIENTATION_DISMISSED_KEY = 'hrl-dashboard-first-run-orientation-dismissed'
 const DATA_LAST_UPDATED = 'June 19, 2026'
 const PUBLIC_CONTACT_EMAIL = 'HealthyRiversandLandscapes@resources.ca.gov'
+const OFFICIAL_CONTEXT_LINKS = [
+  {
+    label: 'California Natural Resources Agency (CNRA) HRL site',
+    url: 'https://resources.ca.gov/Initiatives/Voluntary-Agreements-Page',
+  },
+  {
+    label: 'State Water Resources Control Board (SWRCB) Bay-Delta Water Quality Control Plan site',
+    url: 'https://waterboards.ca.gov/waterrights/water_issues/programs/bay_delta/comp_review.html',
+  },
+  {
+    label: 'State Water Resources Control Board (SWRCB) Voluntary Agreements/HRL site',
+    url: 'https://waterboards.ca.gov/waterrights/water_issues/programs/bay_delta/proposed_voluntary_agreements.html',
+  },
+] as const
 
 function shouldShowFirstRunOrientation(): boolean {
   try {
@@ -597,17 +611,30 @@ export function App() {
             <div className={styles.aboutBody}>
               <p>
                 This map shows early implementation and proposed habitat restoration
-                projects in the Healthy Rivers and Landscapes Program.
+                projects in the Healthy Rivers and Landscapes Program (HRL).
               </p>
               <p>
-                Healthy Rivers and Landscapes is a watershed-wide approach to improve
-                river flows, expand habitat, and support native fish and wildlife in
-                the Sacramento and San Joaquin Rivers and the Bay-Delta.
+                HRL is a watershed-wide approach to improve river flows, expand
+                habitat, and support native fish and wildlife in the Sacramento and
+                San Joaquin Rivers and the Bay-Delta.
               </p>
               <p>
-                The dashboard is intended as a public, regulator, and partner agency
-                overview of project locations and basic project information. It is not
-                a verified habitat accounting tool.
+                HRL is proposed as an implementation pathway for the Bay-Delta Water
+                Quality Control Plan. For official HRL program information and
+                Bay-Delta Water Quality Control Plan context, see:
+              </p>
+              <ul className={styles.officialLinks}>
+                {OFFICIAL_CONTEXT_LINKS.map(link => (
+                  <li key={link.url}>
+                    <a href={link.url} target="_blank" rel="noreferrer">
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <p>
+                The dashboard is intended as a overview of project locations and
+                basic project information. It is not a verified habitat accounting tool.
               </p>
               <p>
                 Project information was submitted by HRL participating entities and
@@ -625,13 +652,6 @@ export function App() {
                 >
                   Read methodology
                 </button>
-                <a
-                  href="https://resources.ca.gov/Initiatives/Voluntary-Agreements-Page"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  CNRA program page
-                </a>
                 <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>
                   Contact HRL
                 </a>
@@ -683,6 +703,24 @@ export function App() {
                   determination, or a substitute for project-specific planning,
                   permitting, or monitoring documents.
                 </p>
+              </section>
+              <section>
+                <h3>HRL program context</h3>
+                <p>
+                  HRL is proposed as an implementation pathway for the Bay-Delta Water
+                  Quality Control Plan, administered by the State Water Resources
+                  Control Board. For official HRL program information and
+                  Bay-Delta Water Quality Control Plan context, see:
+                </p>
+                <ul className={styles.officialLinks}>
+                  {OFFICIAL_CONTEXT_LINKS.map(link => (
+                    <li key={link.url}>
+                      <a href={link.url} target="_blank" rel="noreferrer">
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </section>
               <section>
                 <h3>Data source</h3>
