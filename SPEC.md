@@ -26,7 +26,7 @@ This repo is currently a **local prototype**, not the production dashboard. The 
 The Healthy Rivers and Landscapes Restoration Dashboard is the public-facing surface of the Healthy Rivers and Landscapes (HRL) Science Program. Its job is to:
 
 1. **Make the work feel real.** A map-first interface that shows where HRL restoration projects are happening, so partners, the regulator, and the public can see the program as a tangible thing in the world rather than as a set of documents.
-2. **Show progress at a high level.** Headline metrics that communicate what the program is achieving without requiring the visitor to read a report. The current prototype labels the schema's total project acreage field as total project acres; the production target can evolve toward verified acres restored or under restoration once canonical data are available.
+2. **Show progress at a high level.** Headline metrics that communicate what the program is achieving without requiring the visitor to read a report. The current prototype sums its reported HRL habitat-type acreage fields as total HRL project acres; the production target can evolve toward verified acres restored or under restoration once canonical data are available.
 3. **Provide a foundation for future capability.** The dashboard is expected to evolve over the eight-year program horizon to incorporate (a) narrative storytelling about specific projects and watersheds, and (b) science, monitoring, and adaptive-management views derived from the HRL data infrastructure.
 
 The dashboard is not a research tool and not an analyst exploration environment.
@@ -92,7 +92,7 @@ Public-facing interface copy should use plain language written for an 8th-grade 
   - Tidal habitat
   - Tributary floodplain habitat
   - Other
-- Headline progress tiles, anchored in the prototype by total project acreage where available.
+- Headline progress tiles, anchored in the prototype by total reported HRL habitat-type acreage where available.
 - Click-to-inspect for any project (project name, type, project stage, lead entity, system, acreage where available).
 - Layer toggling for project types, HRL tributary watersheds, and reference boundaries.
 - URL-encoded state (center, zoom, active layers, selected project, time range if applicable).
@@ -139,7 +139,7 @@ Every piece of content must be assigned to a tier. If a piece of content cannot 
 - **Full-bleed map.** The map fills the viewport. Chrome sits on top of it as floating panels.
 - **Top bar.** Thin (≈48px). Dashboard identity left; "Download data" and "About" actions right. No primary navigation lives here.
 - **Left rail.** ≈360px, collapsible. Layer toggles, filters, legend. Default-open on desktop, default-collapsed on mobile.
-- **Bottom tile strip.** Headline progress tiles currently show visible project count and total project acres where available. Confirmed position: bottom-centre of the map area (Decision 22). Avoids conflict with the left layer panel and bottom-right navigation controls.
+- **Bottom tile strip.** Headline progress tiles currently show visible project count and total HRL project acres where available. Confirmed position: bottom-centre of the map area (Decision 22). Avoids conflict with the left layer panel and bottom-right navigation controls.
 - **Right detail panel.** ≈400px, opens on selection, closes on dismiss. Renders project detail (tier 3). Pushes the map left rather than overlaying it on desktop; overlays on mobile.
 - **No persistent footer.** Footer information lives in About/methodology surfaces.
 
@@ -320,7 +320,7 @@ Recommended map use:
 - **Primary labels:** Use `project_name`.
 - **Symbology:** Use `project_type`. Because `project_type` is multivalued, derive a primary type for color/symbol assignment from the reported habitat-specific acreage fields: use the listed project type with the largest reported acreage, fall back to the first listed type when none of the listed types has type-specific acreage, and use fish passage or fish screen types as primary only when no listed acreage-bearing habitat type is available. Expose all types in details and filters.
 - **Filters:** Start with `project_type`, `project_stage`, `system`, `target_species`, `early_implementation`, and construction year ranges.
-- **Headline metrics:** Use `acreage` as the prototype total acreage metric where present. Habitat-specific acreage fields can support secondary metrics or breakdowns.
+- **Headline metrics:** Sum the six reported HRL habitat-type acreage fields (`acreage_bypass_floodplain`, `acreage_fish_food`, `acreage_tributary_floodplain`, `acreage_tributary_rearing`, `acreage_tributary_spawning`, and `acreage_tidal_wetland`) as the prototype total HRL project acres metric. The total project `acreage` field remains available for project details and other contexts.
 - **Hover tooltip:** Keep to `project_name`, primary `project_type`, `system`, and `acreage` if available.
 - **Detail panel:** Include `project_name`, `project_description`, `lead_entity`, `project_stage` labeled as "Current project stage," `project_type`, `target_species`, `system`, anticipated construction years, acreage fields, and funding sources if appropriate. Preserve and display all submitted current-stage values where more than one is present.
 - **Non-map interface:** Include the same searchable/filterable project records and detail fields needed to complete all essential map workflows.
@@ -560,3 +560,4 @@ A canonical, append-only record of settled decisions. Add new entries at the bot
 | 48 | 2026-07-13 | The dashboard links to official CNRA and State Water Resources Control Board pages for HRL program and Bay-Delta Water Quality Control Plan context, rather than maintaining original Plan of Implementation or Bay-Delta Update explanatory text in the app. | HRL Habitat Team discussion identified the CNRA HRL website and SWRCB Bay-Delta pages as the maintained sources for this policy and regulatory context. Linking from the About and methodology surfaces addresses Round 1 feedback R1-20 while avoiding duplicate or stale policy language in the dashboard. |
 | 49 | 2026-07-13 | Public UI labels use "project acres" or compact "total project acres" for acreage values, with help text explaining that the values are reported by HRL participating entities for public orientation and are not final HRL habitat accounting acres. | This keeps visible labels plain and confident while avoiding the procedural ambiguity of "submitted" in compact UI. The methodology surface can still explain provenance and validation separately. |
 | 50 | 2026-07-13 | Acreage caveats appear as targeted inline help on the headline acreage tile, project detail acreage heading, and habitat-type acreage breakdown rather than in every compact map or project-list context. | Inline help addresses Round 1 acreage confusion where users are most likely to infer accounting meaning, while keeping the map, tooltip, and project list readable and non-defensive. |
+| 51 | 2026-07-15 | The headline acreage tile is labeled "total HRL project acres" and sums the six reported HRL habitat-type acreage fields across the filtered project set. | The dashboard is centered on HRL habitat types, so the headline should reflect the habitat-specific project area rather than each project's overall reported acreage. This supersedes Decision 9 for the prototype headline metric and Decision 49 for the headline tile label. |

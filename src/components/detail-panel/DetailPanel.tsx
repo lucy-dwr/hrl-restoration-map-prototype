@@ -164,8 +164,8 @@ export function DetailPanel({ project, onClose, onZoomToProject }: Props) {
           {acreageRows.length > 0 && (
             <div className={styles.acreageBreakdown}>
               <div className={styles.subsectionLabelWithHelp}>
-                <h4 className={styles.subsectionLabel}>Habitat type acres</h4>
-                <InfoPopover label="About habitat type acres">
+                <h4 className={styles.subsectionLabel}>HRL habitat type acres</h4>
+                <InfoPopover label="About HRL habitat type acres">
                   {HABITAT_TYPE_ACRES_HELP}
                 </InfoPopover>
               </div>

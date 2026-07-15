@@ -3,6 +3,8 @@ import {
   ACREAGE_TILE_LABEL,
   TOTAL_PROJECT_ACRES_HELP,
   formatAcreage,
+  hasHrlHabitatAcreage,
+  totalHrlHabitatAcreage,
 } from '../../data/acreage'
 import type { ProjectProperties } from '../../data/types'
 import { InfoPopover } from '../info-popover/InfoPopover'
@@ -19,11 +21,11 @@ export function HeadlineTiles({ data, layerPanelOpen = false }: Props) {
 
   const features = data.features
   const total = features.length
-  const withAcreage = features.filter(
-    f => (f.properties as ProjectProperties).acreage != null
+  const withHrlHabitatAcreage = features.filter(
+    f => hasHrlHabitatAcreage(f.properties as ProjectProperties)
   )
-  const totalAcreage = withAcreage.reduce(
-    (sum, f) => sum + ((f.properties as ProjectProperties).acreage ?? 0),
+  const totalHrlAcreage = withHrlHabitatAcreage.reduce(
+    (sum, f) => sum + totalHrlHabitatAcreage(f.properties as ProjectProperties),
     0
   )
 
@@ -37,11 +39,11 @@ export function HeadlineTiles({ data, layerPanelOpen = false }: Props) {
         <div className={styles.divider} />
         <div className={styles.tile}>
           <span className={styles.value}>
-            {withAcreage.length > 0 ? formatAcreage(totalAcreage) : '—'}
+            {withHrlHabitatAcreage.length > 0 ? formatAcreage(totalHrlAcreage) : '—'}
           </span>
           <span className={styles.labelWithHelp}>
             <span>{ACREAGE_TILE_LABEL}</span>
-            <InfoPopover label="About total project acres" placement="top">
+            <InfoPopover label="About total HRL project acres" placement="top">
               {TOTAL_PROJECT_ACRES_HELP}
             </InfoPopover>
           </span>
