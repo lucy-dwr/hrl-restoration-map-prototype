@@ -12,4 +12,5 @@ prototype.
 - `round-1-feedback-synthesis.md` — narrative summary of what worked, what
   should change, what should be deferred, and possible `SPEC.md` implications.
 - `round-1-candidate-issues.md` — issue-shaped backlog candidates for later
-  GitHub issue creation. No GitHub issues have been opened from this triage.
+  GitHub issue creation. GitHub issues were opened from this triage and addressed
+  as appropriate.
