@@ -1,5 +1,9 @@
 # hrl-restoration-map-prototype
 
+**This development prototype repository has been archived. The successor**
+**repository where the stable release now lives can be found at**
+**https://github.com/lucy-dwr/hrl-restoration-map.**
+
 Interactive map for visualizing Healthy Rivers and Landscapes restoration
 projects.
 
